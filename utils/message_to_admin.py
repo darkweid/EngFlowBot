@@ -7,7 +7,7 @@ from .bot_init import get_bot_instance
 
 logger = logging.getLogger(__name__)
 
-ADMINS: list = settings.admin_ids
+ADMINS: list[int] = settings.admin_ids
 
 
 async def send_message_to_admin(text: str, to_super_admin=False):

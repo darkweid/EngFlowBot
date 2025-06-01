@@ -19,7 +19,7 @@ sqlalchemy_logger.setLevel(logging.INFO)
 
 BOT_TOKEN: str = settings.bot_token
 REDIS_DSN: str = settings.redis_dsn
-ADMINS: list = settings.admin_ids
+ADMINS: list[int] = settings.admin_ids
 
 
 async def main():

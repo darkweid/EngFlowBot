@@ -16,7 +16,7 @@ from lexicon import (AdminMenuButtons, MessageTexts, BasicButtons, TestingSectio
 from utils import (update_state_data, delete_scheduled_broadcasts, schedule_broadcast, send_message_to_user,
                    send_long_message, check_line, get_word_declension)
 
-ADMINS: list = settings.admin_ids
+ADMINS: list[int] = settings.admin_ids
 
 admin_router: Router = Router()
 testing_manager: TestingManager = TestingManager()
@@ -29,7 +29,7 @@ daily_progress_manager: DailyStatisticsManager = DailyStatisticsManager()
 
 @admin_router.message(Command(commands=["admin"]))
 async def admin_command(message: Message, state: FSMContext):
-    if str(message.from_user.id) in ADMINS:
+    if message.from_user.id in ADMINS:
         await message.answer('🔘 Привет, что будем делать? 🔘',
                              reply_markup=await keyboard_builder(1, AdminMenuButtons.EXERCISES,
                                                                  AdminMenuButtons.SEE_ACTIVITY_DAY,

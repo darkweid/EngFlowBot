@@ -3,14 +3,12 @@ import logging
 from aiogram import Bot
 from aiogram.exceptions import TelegramForbiddenError
 
-from config_data.settings import settings
 from db import UserManager, UserWordsLearningManager
 from keyboards import keyboard_builder
 from lexicon import BasicButtons, MessageTexts
 from .bot_init import get_bot_instance
 
 logger = logging.getLogger(__name__)
-ADMINS: list = settings.admin_ids
 user_manager: UserManager = UserManager()
 user_words_manager: UserWordsLearningManager = UserWordsLearningManager()
 
