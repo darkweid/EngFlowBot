@@ -2,10 +2,10 @@ from aiogram import Bot
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
-bot_instance: Bot = None
+bot_instance: Bot | None = None
 
 
-async def init_bot_instance(token: str):
+async def init_bot_instance(token: str) -> None:
     """
     Initialize the bot instance with the given token.
 
