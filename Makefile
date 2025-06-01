@@ -1,5 +1,5 @@
 # Docker settings
-DOCKER_COMPOSE = docker compose
+DOCKER_COMPOSE = docker-compose
 DOCKER_COMPOSE_EXEC = $(DOCKER_COMPOSE) exec
 
 # Container names
