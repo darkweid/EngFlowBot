@@ -1,5 +1,4 @@
 import asyncio
-import logging
 
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
@@ -8,14 +7,10 @@ from config_data.settings import settings
 from db import init_db
 from handlers import *
 from keyboards.set_menu import set_main_menu
+from loggers import get_logger
 from utils import send_message_to_admin, scheduler, schedule_reminders, init_bot_instance, get_bot_instance
 
-logging.basicConfig(level=logging.INFO,
-                    format='#%(levelname)-8s '
-                           '[%(asctime)s] - %(name)s - %(message)s')
-logger = logging.getLogger(__name__)
-sqlalchemy_logger = logging.getLogger('sqlalchemy.engine')
-sqlalchemy_logger.setLevel(logging.INFO)
+logger = get_logger(__name__)
 
 BOT_TOKEN: str = settings.bot_token
 REDIS_DSN: str = settings.redis_dsn

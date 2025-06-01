@@ -1,13 +1,14 @@
-import logging
-
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 
 from config_data.settings import settings
+from loggers import get_logger
 from .models import Base
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
+
 POSTGRES_DSN: str = settings.build_postgres_dsn()
+
 engine = create_async_engine(POSTGRES_DSN,
                              echo=settings.db_echo,
                              pool_size=15,

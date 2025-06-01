@@ -1,17 +1,17 @@
-import logging
+import random
+from datetime import datetime, date, timedelta
 
-from sqlalchemy.ext.asyncio import async_sessionmaker
 # from sqlalchemy.future import select
 from sqlalchemy import select, func, update, delete, not_, desc, distinct
+from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm import joinedload
 
+from db.init import engine
 from db.models import (TestingExercise, NewWords, UserProgress, User, UserWordsLearning,
                        DailyStatistics)
-from db.init import engine
-from datetime import datetime, date, timedelta
-import random
+from loggers import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 SessionLocal = async_sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
@@ -27,7 +27,6 @@ class TestingManager(DatabaseManager):
     async def add_testing_exercise(self, section, subsection, test, answer):
         async with self.db as session:
             async with session.begin():
-                # Найти максимальный ID для данного раздела
                 max_id = await session.execute(
                     select(func.max(TestingExercise.id)).filter_by(section=section, subsection=subsection))
                 max_id = max_id.scalar() or 0
@@ -78,10 +77,9 @@ class TestingManager(DatabaseManager):
             exercises = result.scalars().all()
 
             if not exercises:
-                return None  # Если нет доступных упражнений
+                return None
             result = random.choice(exercises)
-            # Возвращаем случайное упражнение из списка
-            return (result.test, result.answer, result.id)
+            return result.test, result.answer, result.id
 
     async def get_section_names(self):
         async with self.db as session:
@@ -301,13 +299,11 @@ class UserWordsLearningManager(DatabaseManager):
                         UserWordsLearning.subsection == subsection,
                         UserWordsLearning.user_id == user_id))).scalar() or 0
 
-                # Сумма всех попыток
                 total_attempts = (await session.execute(
                     select(func.sum(UserWordsLearning.attempts)).where(
                         UserWordsLearning.subsection == subsection,
                         UserWordsLearning.user_id == user_id))).scalar() or 0
 
-                # Вычисление success rate
                 if total_attempts > 0:
                     success_rate = (total_success / total_attempts) * 100
                 else:
@@ -359,7 +355,6 @@ class UserWordsLearningManager(DatabaseManager):
                 exercises = res.scalars().all()
 
                 for exercise in exercises:
-                    # Проверяем, что упражнение является объектом NewWords
                     if isinstance(exercise, NewWords):
                         result = UserWordsLearning(
                             user_id=user_id,
@@ -433,7 +428,6 @@ class UserProgressManager(DatabaseManager):
 
     async def get_counts_completed_exercises_testing(self, user_id, section, subsection):
         async with self.db as session:
-            # Выполнение запроса для получения количества успешных упражнений
             success_exercises_count = (await session.execute(
                 select(func.count()).select_from(UserProgress).where(
                     UserProgress.user_id == user_id,
@@ -618,9 +612,8 @@ class UserManager(DatabaseManager):
     async def get_all_users(self):
         async with self.db as session:
             result = await session.execute(select(User).order_by(User.id))
-            users = result.scalars().all()  # Извлекаем все строки как объекты User
+            users = result.scalars().all()
 
-            # Создаем кортеж словарей с информацией о каждом пользователе
             user_info = tuple(
                 {
                     'id': user.id,

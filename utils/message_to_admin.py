@@ -1,11 +1,15 @@
-import logging
-
 from aiogram import Bot
 
 from config_data.settings import settings
 from .bot_init import get_bot_instance
+from loggers import get_logger
+from aiogram import Bot
 
-logger = logging.getLogger(__name__)
+from config_data.settings import settings
+from loggers import get_logger
+from .bot_init import get_bot_instance
+
+logger = get_logger(__name__)
 
 ADMINS: list[int] = settings.admin_ids
 
