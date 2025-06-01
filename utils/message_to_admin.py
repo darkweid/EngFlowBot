@@ -1,11 +1,13 @@
-from config_data.config import Config, load_config
-from aiogram import Bot
-from .bot_init import get_bot_instance
 import logging
 
+from aiogram import Bot
+
+from config_data.settings import settings
+from .bot_init import get_bot_instance
+
 logger = logging.getLogger(__name__)
-config: Config = load_config()
-ADMINS: list = config.tg_bot.admin_ids
+
+ADMINS: list = settings.admin_ids
 
 
 async def send_message_to_admin(text: str, to_super_admin=False):
@@ -26,4 +28,4 @@ async def send_message_to_admin(text: str, to_super_admin=False):
             for admin in ADMINS:
                 await bot.send_message(admin, text=text)
         except Exception as e:
-            logger.error(f'Unsuccesfull attempt to send message to admin{admin}: {e}')
+            logger.error(f'Unsuccessful attempt to send message to admin{admin}: {e}')

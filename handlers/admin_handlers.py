@@ -2,7 +2,7 @@ import logging
 
 from aiogram.exceptions import TelegramBadRequest
 from aiogram import Router, F
-from config_data.config import Config, load_config
+from config_data.settings import settings
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
@@ -16,8 +16,7 @@ from lexicon import (AdminMenuButtons, MessageTexts, BasicButtons, TestingSectio
 from utils import (update_state_data, delete_scheduled_broadcasts, schedule_broadcast, send_message_to_user,
                    send_long_message, check_line, get_word_declension)
 
-config: Config = load_config()
-ADMINS: list = config.tg_bot.admin_ids
+ADMINS: list = settings.admin_ids
 
 admin_router: Router = Router()
 testing_manager: TestingManager = TestingManager()

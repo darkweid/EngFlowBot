@@ -1,15 +1,33 @@
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from config_data.config import Config, load_config
-from .models import Base
 import logging
 
-config: Config = load_config()
-POSTGRES_DSN: str = config.tg_bot.postgres_dsn
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
+
+from config_data.settings import settings
+from .models import Base
 
 logger = logging.getLogger(__name__)
+POSTGRES_DSN: str = settings.build_postgres_dsn()
+engine = create_async_engine(POSTGRES_DSN,
+                             echo=settings.db_echo,
+                             pool_size=15,
+                             max_overflow=10,
+                             pool_timeout=30,
+                             pool_recycle=60 * 30,  # Restart the pool after 30 minutes
+                             )
 
-engine = create_async_engine(POSTGRES_DSN, echo=False)
-SessionLocal = async_sessionmaker(autocommit=False, autoflush=False, bind=engine)
+_session_maker: sessionmaker[AsyncSession] | None = None
+
+
+def init_async_session():
+    global _session_maker
+    _session_maker = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)  # noqa
+
+
+def get_session_maker() -> sessionmaker[AsyncSession]:
+    if _session_maker is None:
+        raise RuntimeError("SessionMaker not initialized. Did you forget to call init_async_session()?")
+    return _session_maker
 
 
 async def init_db():

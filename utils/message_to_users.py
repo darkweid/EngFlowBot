@@ -1,15 +1,16 @@
 import logging
-from aiogram.exceptions import TelegramForbiddenError
-from config_data.config import Config, load_config
+
 from aiogram import Bot
+from aiogram.exceptions import TelegramForbiddenError
+
+from config_data.settings import settings
 from db import UserManager, UserWordsLearningManager
-from .bot_init import get_bot_instance
 from keyboards import keyboard_builder
 from lexicon import BasicButtons, MessageTexts
+from .bot_init import get_bot_instance
 
 logger = logging.getLogger(__name__)
-config: Config = load_config()
-ADMINS: list = config.tg_bot.admin_ids
+ADMINS: list = settings.admin_ids
 user_manager: UserManager = UserManager()
 user_words_manager: UserWordsLearningManager = UserWordsLearningManager()
 
@@ -76,7 +77,8 @@ async def send_reminder_to_user(user_id: int):
                                    text=f'{MessageTexts.REMINDER.value}\n{MessageTexts.ADVICE_TO_ADD_MORE_WORDS.value}',
                                    reply_markup=await keyboard_builder(1,
                                                                        BasicButtons.MAIN_MENU,
-                                                                       add_new_words=BasicButtons.ADD_WORDS, args_go_first=False))
+                                                                       add_new_words=BasicButtons.ADD_WORDS,
+                                                                       args_go_first=False))
         elif count_words_for_today == 0 and active_learning_count > 12:
             await bot.send_message(user_id, text=MessageTexts.REMINDER.value,
                                    reply_markup=await keyboard_builder(1, BasicButtons.MAIN_MENU))
