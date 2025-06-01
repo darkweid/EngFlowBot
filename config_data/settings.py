@@ -7,6 +7,10 @@ class Settings(BaseSettings):
     redis_dsn: str
     bot_token: str
 
+    log_level: str
+    log_level_file: str
+
+    db_echo: bool
     postgres_user: str
     postgres_password: str
     postgres_host: str
