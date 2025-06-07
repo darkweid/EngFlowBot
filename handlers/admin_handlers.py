@@ -8,12 +8,13 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from config_data.settings import settings
-from db import (UserProgressManager, UserManager, DailyStatisticsManager)
+from db import (UserManager, DailyStatisticsManager)
 from keyboards import keyboard_builder, keyboard_builder_users
 from lexicon import (AdminMenuButtons, MessageTexts, BasicButtons, TestingSections, testing_section_mapping,
                      NewWordsSections)
 from services.new_words import NewWordsService
 from services.testing import TestingService
+from services.user_progress import UserProgressService
 from services.user_words_learning import UserWordsLearningService
 from states import AdminFSM, UserFSM
 from utils import (update_state_data, delete_scheduled_broadcasts, schedule_broadcast, send_message_to_user,
@@ -23,7 +24,7 @@ ADMINS: list[int] = settings.admin_ids
 
 admin_router: Router = Router()
 testing_service: TestingService = TestingService()
-user_progress_manager: UserProgressManager = UserProgressManager()
+user_progress_service: UserProgressService = UserProgressService()
 user_manager: UserManager = UserManager()
 new_words_service: NewWordsService = NewWordsService()
 user_words_learning_service: UserWordsLearningService = UserWordsLearningService()
@@ -283,7 +284,7 @@ async def admin_deleting_sentence_testing(message: Message, state: FSMContext):
 async def admin_users(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     users = await user_manager.get_all_users()
-    users_ranks_and_points = await user_progress_manager.get_all_users_ranks_and_points(medals_rank=True)
+    users_ranks_and_points = await user_progress_service.get_all_users_ranks_and_points(medals_rank=True)
     rank_info = f"""<pre>Рейтинг всех пользователей:\n
 [{'№'.center(6)}] [{'Баллы'.center(7)}] [{'Имя'.center(20)}]\n"""
     count = 0

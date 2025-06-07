@@ -2,12 +2,14 @@ from aiogram import Router, F
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.state import default_state
 from aiogram.types import CallbackQuery, Message
-from lexicon import MessageTexts, BasicButtons
-from db import UserProgressManager, UserManager
+
+from db import UserManager
 from keyboards import keyboard_builder
+from lexicon import MessageTexts, BasicButtons
+from services.user_progress import UserProgressService
 
 user_stats_router: Router = Router()
-user_progress_manager = UserProgressManager()
+user_progress_service: UserProgressService = UserProgressService()
 user_manager = UserManager()
 
 
@@ -30,9 +32,9 @@ async def see_stats_user(callback: CallbackQuery):
     cbdata = callback.data
     user_id = callback.from_user.id
     if cbdata == 'stats_today':
-        info = await user_progress_manager.get_activity_by_user(user_id)
+        info = await user_progress_service.get_activity_by_user(user_id)
     elif cbdata == 'stats_last_week':
-        info = await user_progress_manager.get_activity_by_user(user_id, interval=7)
+        info = await user_progress_service.get_activity_by_user(user_id, interval=7)
     else:
-        info = await user_progress_manager.get_activity_by_user(user_id, interval=30)
+        info = await user_progress_service.get_activity_by_user(user_id, interval=30)
     await callback.message.answer(info, reply_markup=await keyboard_builder(1, BasicButtons.CLOSE))

@@ -8,18 +8,19 @@ from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from db import UserProgressManager, DailyStatisticsManager
+from db import DailyStatisticsManager
 from keyboards import keyboard_builder
 from lexicon import (MessageTexts, BasicButtons, MainMenuButtons, list_right_answers,
                      PrepositionsSections)
 from services.testing import TestingService
+from services.user_progress import UserProgressService
 from states import TestingFSM
 from utils import send_message_to_admin, update_state_data
 
 user_testing_router: Router = Router()
 
-testing_service = TestingService()
-user_progress_manager = UserProgressManager()
+testing_service: TestingService = TestingService()
+user_progress_service: UserProgressService = UserProgressService()
 daily_stats_manager = DailyStatisticsManager()
 
 
@@ -83,7 +84,6 @@ async def choosing_section_testing(callback: CallbackQuery, state: FSMContext):
 async def choosing_subsection_testing(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     data = await state.get_data()
-    section = data.get('section')
     subsection = callback.data
     additional_rules = ''
     if subsection == PrepositionsSections.PREPOSITIONS_OF_THE_TIME:
@@ -114,7 +114,7 @@ async def chose_subsection_testing(callback: CallbackQuery, state: FSMContext, p
     if exercise:
         test, answer, id_exercise = exercise
     else:
-        first_try_count, success_count, total_exercises_count = await user_progress_manager.get_counts_completed_exercises_testing(
+        first_try_count, success_count, total_exercises_count = await user_progress_service.get_counts_completed_exercises_testing(
             user_id=user_id, section=section,
             subsection=subsection)
         await callback.message.answer(f"""{MessageTexts.ALL_EXERCISES_COMPLETED}
@@ -137,7 +137,7 @@ async def in_process_testing(message: Message, state: FSMContext):
         'current_id'), message.from_user.id
     answer = data.get('current_answer')
     if message.text.lower().replace(' ', '') == answer.lower().replace(' ', ''):
-        first_try = await user_progress_manager.mark_exercise_completed(exercise_type='Testing',
+        first_try = await user_progress_service.mark_exercise_completed(exercise_type='Testing',
                                                                         section=section,
                                                                         subsection=subsection,
                                                                         exercise_id=exercise_id, user_id=user_id,
@@ -150,7 +150,7 @@ async def in_process_testing(message: Message, state: FSMContext):
                                                                      user_id=user_id)
 
         if not exercise:
-            first_try_count, success_count, total_exercises_count = await user_progress_manager.get_counts_completed_exercises_testing(
+            first_try_count, success_count, total_exercises_count = await user_progress_service.get_counts_completed_exercises_testing(
                 user_id=user_id, section=section,
                 subsection=subsection)
             await message.answer(f"""{MessageTexts.ALL_EXERCISES_COMPLETED}
@@ -173,7 +173,7 @@ async def in_process_testing(message: Message, state: FSMContext):
     else:
         await message.answer(MessageTexts.INCORRECT_ANSWER,
                              reply_markup=await keyboard_builder(1, see_answer_testing=BasicButtons.SEE_ANSWER))
-        await user_progress_manager.mark_exercise_completed(exercise_type='Testing', section=section,
+        await user_progress_service.mark_exercise_completed(exercise_type='Testing', section=section,
                                                             subsection=subsection,
                                                             exercise_id=exercise_id, user_id=user_id, success=False)
 
@@ -191,7 +191,7 @@ async def start_again_testing(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     data = await state.get_data()
     subsection, section, user_id = data.get('subsection'), data.get('section'), callback.from_user.id
-    await user_progress_manager.delete_progress_by_subsection(user_id=user_id, section=section, subsection=subsection)
+    await user_progress_service.delete_progress_by_subsection(user_id=user_id, section=section, subsection=subsection)
     await callback.message.edit_text(f'Прогресс по тесту {section} – {subsection} сброшен')
     await chose_subsection_testing(callback, state, prev_message_delete=False)
 
