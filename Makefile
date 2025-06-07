@@ -44,6 +44,16 @@ clean-resources:
 	docker container prune -f
 	docker builder prune -a -f
 
+# Alembic: Create a new migration
+.PHONY: migration
+migration:
+	$(DOCKER_COMPOSE_EXEC) $(APP_CONTAINER) alembic revision --autogenerate -m "$(message)"
+
+# Alembic: Apply migrations
+.PHONY: migrate
+migrate:
+	$(DOCKER_COMPOSE_EXEC) $(APP_CONTAINER) alembic upgrade head
+
 # Execute a bash shell inside the app container
 .PHONY: shell
 shell:

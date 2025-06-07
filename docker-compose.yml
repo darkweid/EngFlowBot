@@ -11,6 +11,7 @@ services:
       redis_fsm:
         condition: service_healthy
     volumes:
+      - .:/app
       - bot_data:/app/bot/data           # → jobs.sqlite
       - bot_data:/app/bot/log_files      # → debug.log
 
