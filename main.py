@@ -22,7 +22,6 @@ async def main():
         logger.info('Starting bot')
 
         storage = RedisStorage.from_url(url=REDIS_DSN)
-        await init_db()
         await init_bot_instance(token=BOT_TOKEN)
         bot: Bot = await get_bot_instance()
         dp: Dispatcher = Dispatcher(storage=storage)
