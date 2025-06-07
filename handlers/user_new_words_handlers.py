@@ -8,9 +8,9 @@ from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
-from db import *
 from keyboards import keyboard_builder, keyboard_builder_words_learning
 from lexicon import *
+from services.daily_statistics import DailyStatisticsService
 from services.new_words import NewWordsService
 from services.user_words_learning import UserWordsLearningService
 from states import WordsLearningFSM
@@ -20,7 +20,7 @@ from utils import (send_message_to_admin, update_state_data, send_long_message, 
 user_new_words_router: Router = Router()
 user_words_learning_service: UserWordsLearningService = UserWordsLearningService()
 new_words_service: NewWordsService = NewWordsService()
-daily_stats_manager = DailyStatisticsManager()
+daily_statistics_service: DailyStatisticsService = DailyStatisticsService()
 
 
 @user_new_words_router.callback_query(F.data == MainMenuButtons.NEW_WORDS)
@@ -190,7 +190,7 @@ async def correct_answer_learning_words(callback: CallbackQuery, state: FSMConte
                                                    exercise_id=exercise_id, success=True)
 
     await learn_new_words(callback, state, hello_message=False)
-    await daily_stats_manager.update('new_words')
+    await daily_statistics_service.update('new_words')
 
 
 @user_new_words_router.callback_query(F.data == 'not_correct',
@@ -212,7 +212,7 @@ async def not_correct_answer_learning_words(callback: CallbackQuery, state: FSMC
     await user_words_learning_service.set_progress(user_id=user_id, section=section, subsection=subsection,
                                                    exercise_id=exercise_id, success=False)
     await learn_new_words(callback, state, hello_message=False)
-    await daily_stats_manager.update('new_words')
+    await daily_statistics_service.update('new_words')
 
 
 @user_new_words_router.callback_query(F.data == 'add_new_words')

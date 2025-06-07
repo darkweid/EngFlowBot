@@ -12,6 +12,7 @@ from db import DailyStatisticsManager
 from keyboards import keyboard_builder
 from lexicon import (MessageTexts, BasicButtons, MainMenuButtons, list_right_answers,
                      PrepositionsSections)
+from services.daily_statistics import DailyStatisticsService
 from services.testing import TestingService
 from services.user_progress import UserProgressService
 from states import TestingFSM
@@ -21,7 +22,7 @@ user_testing_router: Router = Router()
 
 testing_service: TestingService = TestingService()
 user_progress_service: UserProgressService = UserProgressService()
-daily_stats_manager = DailyStatisticsManager()
+daily_statistics_service:DailyStatisticsService = DailyStatisticsService()
 
 
 @user_testing_router.callback_query((F.data == 'rules_testing'))
@@ -131,7 +132,7 @@ async def chose_subsection_testing(callback: CallbackQuery, state: FSMContext, p
 
 @user_testing_router.message(StateFilter(TestingFSM.in_process))  # В процессе тестирования
 async def in_process_testing(message: Message, state: FSMContext):
-    await daily_stats_manager.update('testing_exercises')
+    await daily_statistics_service.update('testing_exercises')
     data = await state.get_data()
     section, subsection, exercise_id, user_id = data.get('section'), data.get('subsection'), data.get(
         'current_id'), message.from_user.id

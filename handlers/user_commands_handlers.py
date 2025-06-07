@@ -8,13 +8,14 @@ from config_data.settings import settings
 from db import DailyStatisticsManager
 from keyboards import keyboard_builder
 from lexicon import BasicButtons, MainMenuButtons, MessageTexts
+from services.daily_statistics import DailyStatisticsService
 from services.user import UserService
 from states import UserFSM
 from utils import send_message_to_admin
 
 user_commands_router: Router = Router()
 user_service: UserService = UserService()
-daily_stats_manager = DailyStatisticsManager()
+daily_statistics_service:DailyStatisticsService = DailyStatisticsService()
 
 
 @user_commands_router.message(Command(commands=["reset_fsm"]))
@@ -45,7 +46,7 @@ async def process_start_command(message: Message, state: FSMContext):
     )
 
     await state.set_state(UserFSM.existing_user)
-    await daily_stats_manager.update('new_user')
+    await daily_statistics_service.update('new_user')
 
 
 @user_commands_router.message(Command(commands=['main_menu']),
