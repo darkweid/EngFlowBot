@@ -27,6 +27,14 @@ run:
 down:
 	$(DOCKER_COMPOSE) down
 
+.PHONY: deploy-prod
+deploy-prod:
+	make build && make down && make up && make migrate
+
+.PHONY: deploy-dev
+deploy-dev:
+	make run && make migrate
+
 # Restart containers
 .PHONY: restart
 restart:
@@ -40,9 +48,9 @@ clean:
 # Remove builds and other unneeded stuff
 .PHONY: clean-resources
 clean-resources:
-	docker image prune -a -f
+	docker image prune -f
 	docker container prune -f
-	docker builder prune -a -f
+	docker builder prune -f
 
 # Alembic: Create a new migration
 .PHONY: migration
