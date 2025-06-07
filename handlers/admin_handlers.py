@@ -1,25 +1,27 @@
 import logging
+from datetime import datetime, date, timedelta
 
-from aiogram.exceptions import TelegramBadRequest
 from aiogram import Router, F
-from config_data.settings import settings
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
-from states import AdminFSM, UserFSM
-from db import TestingManager, UserProgressManager, UserManager, NewWordsExerciseManager, UserWordsLearningManager, \
-    DailyStatisticsManager
-from datetime import datetime, date, timedelta
+
+from config_data.settings import settings
+from db import (UserProgressManager, UserManager, NewWordsExerciseManager,
+                UserWordsLearningManager, DailyStatisticsManager)
 from keyboards import keyboard_builder, keyboard_builder_users
 from lexicon import (AdminMenuButtons, MessageTexts, BasicButtons, TestingSections, testing_section_mapping,
                      NewWordsSections)
+from services.testing import TestingService
+from states import AdminFSM, UserFSM
 from utils import (update_state_data, delete_scheduled_broadcasts, schedule_broadcast, send_message_to_user,
                    send_long_message, check_line, get_word_declension)
 
 ADMINS: list[int] = settings.admin_ids
 
 admin_router: Router = Router()
-testing_manager: TestingManager = TestingManager()
+testing_service: TestingService = TestingService()
 user_progress_manager: UserProgressManager = UserProgressManager()
 user_manager: UserManager = UserManager()
 words_manager: NewWordsExerciseManager = NewWordsExerciseManager()
@@ -148,7 +150,7 @@ async def admin_testing_management(callback: CallbackQuery, state: FSMContext):
     section_subsection = f'\"{section} - {subsection}\"'
 
     if section and callback.data == AdminMenuButtons.SEE_EXERCISES_TESTING.value:
-        result = await testing_manager.get_testing_exercises(subsection)
+        result = await testing_service.get_testing_exercises(subsection)
         if result:
             await callback.answer()
             await send_long_message(callback, f'Вот все предложения из раздела\n{section_subsection}:\n{result}',
@@ -197,11 +199,11 @@ async def admin_adding_sentence_testing(message: Message, state: FSMContext):
         if count_sentences > 1:
             for group_sentences in sentences:
                 test, answer = group_sentences.split('=+=')
-                await testing_manager.add_testing_exercise(section=section, subsection=subsection, test=test,
+                await testing_service.add_testing_exercise(section=section, subsection=subsection, test=test,
                                                            answer=answer)
         else:
             test, answer = message.text.split('=+=')
-            await testing_manager.add_testing_exercise(section=section, subsection=subsection, test=test,
+            await testing_service.add_testing_exercise(section=section, subsection=subsection, test=test,
                                                        answer=answer)
 
         await message.answer(
@@ -239,7 +241,7 @@ async def admin_edit_sentence_testing(message: Message, state: FSMContext):
         'index_testing_edit')
     try:
         test, answer = message.text.split('=+=')
-        await testing_manager.edit_testing_exercise(section=section, subsection=subsection, test=test, answer=answer,
+        await testing_service.edit_testing_exercise(section=section, subsection=subsection, test=test, answer=answer,
                                                     index=index_testing_edit)
         await message.answer('✅Успешно изменено',
                              reply_markup=await keyboard_builder(1, AdminMenuButtons.MAIN_MENU))
@@ -266,10 +268,10 @@ async def admin_deleting_sentence_testing(message: Message, state: FSMContext):
         index = indexes[0]
         await message.answer(f"""✅Предложение № {index}\n<b>Удалено</b> из раздела \n{exercise_name}""",
                              reply_markup=await keyboard_builder(1, AdminMenuButtons.MAIN_MENU, AdminMenuButtons.EXIT))
-        await testing_manager.delete_testing_exercise(section=section, subsection=subsection, index=index)
+        await testing_service.delete_testing_exercise(section=section, subsection=subsection, index=index)
     elif len(indexes) > 1:
         for index in indexes:
-            await testing_manager.delete_testing_exercise(section=section, subsection=subsection, index=index)
+            await testing_service.delete_testing_exercise(section=section, subsection=subsection, index=index)
         await message.answer(f"""✅Предложения № {str(indexes)}\n <b>Удалены</b> из раздела \n{exercise_name}""",
                              reply_markup=await keyboard_builder(1, AdminMenuButtons.MAIN_MENU, AdminMenuButtons.EXIT))
 

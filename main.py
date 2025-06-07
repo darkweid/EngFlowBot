@@ -4,6 +4,10 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
 
 from config_data.settings import settings
+from db.init import init_async_session
+
+init_async_session()
+
 from handlers import *
 from keyboards.set_menu import set_main_menu
 from loggers import get_logger

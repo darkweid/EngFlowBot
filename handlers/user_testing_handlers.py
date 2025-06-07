@@ -1,22 +1,24 @@
 import asyncio
-import random
 import logging
+import random
 
 from aiogram import Router, F
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
-from aiogram.exceptions import TelegramBadRequest
+
+from db import UserProgressManager, DailyStatisticsManager
+from keyboards import keyboard_builder
+from lexicon import (MessageTexts, BasicButtons, MainMenuButtons, list_right_answers,
+                     PrepositionsSections)
+from services.testing import TestingService
 from states import TestingFSM
 from utils import send_message_to_admin, update_state_data
-from lexicon import (MessageTexts, BasicButtons, TestingSections, MainMenuButtons, list_right_answers,
-                     testing_section_mapping, PrepositionsSections)
-from db import TestingManager, UserProgressManager, DailyStatisticsManager
-from keyboards import keyboard_builder
 
 user_testing_router: Router = Router()
 
-testing_manager = TestingManager()
+testing_service = TestingService()
 user_progress_manager = UserProgressManager()
 daily_stats_manager = DailyStatisticsManager()
 
@@ -44,7 +46,7 @@ async def start_testing_with_rules(callback: CallbackQuery, state: FSMContext):
                                      reply_markup=await keyboard_builder(1, rules_testing=BasicButtons.RULES,
                                                                          close_rules_tests=BasicButtons.CLOSE))
     # await asyncio.sleep(3)
-    sections = await testing_manager.get_section_names()
+    sections = await testing_service.get_section_names()
     await callback.message.answer(MessageTexts.CHOOSE_SECTION.value,
                                   reply_markup=await keyboard_builder(1, *[section for section in sections],
                                                                       BasicButtons.MAIN_MENU))
@@ -56,7 +58,7 @@ async def start_testing_with_rules(callback: CallbackQuery, state: FSMContext):
 @user_testing_router.callback_query((F.data == 'choose_other_section_training'))
 async def start_testing(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
-    sections = await testing_manager.get_section_names()
+    sections = await testing_service.get_section_names()
     await callback.message.edit_text(MessageTexts.CHOOSE_SECTION.value,
                                      reply_markup=await keyboard_builder(1, *[section for section in sections],
                                                                          BasicButtons.MAIN_MENU))
@@ -67,7 +69,7 @@ async def start_testing(callback: CallbackQuery, state: FSMContext):
 async def choosing_section_testing(callback: CallbackQuery, state: FSMContext):
     section = callback.data
     await callback.answer()
-    subsections = await testing_manager.get_subsection_names(section=section)
+    subsections = await testing_service.get_subsection_names(section=section)
     await callback.message.edit_text(
         MessageTexts.CHOOSE_SUBSECTION_TEST.value,
         reply_markup=await keyboard_builder(1, *[subsection for subsection in subsections], BasicButtons.BACK,
@@ -106,7 +108,7 @@ async def chose_subsection_testing(callback: CallbackQuery, state: FSMContext, p
         pass
     data = await state.get_data()
     subsection, section, user_id = data.get('subsection'), data.get('section'), callback.from_user.id
-    exercise = await testing_manager.get_random_testing_exercise(section=section, subsection=subsection,
+    exercise = await testing_service.get_random_testing_exercise(section=section, subsection=subsection,
                                                                  user_id=user_id)
 
     if exercise:
@@ -143,7 +145,7 @@ async def in_process_testing(message: Message, state: FSMContext):
         data = await state.get_data()
         subsection, section, user_id = data.get('subsection'), data.get('section'), message.from_user.id
 
-        exercise = await testing_manager.get_random_testing_exercise(section=section,
+        exercise = await testing_service.get_random_testing_exercise(section=section,
                                                                      subsection=subsection,
                                                                      user_id=user_id)
 
