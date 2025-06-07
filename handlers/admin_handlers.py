@@ -8,13 +8,13 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from config_data.settings import settings
-from db import (UserProgressManager, UserManager, NewWordsExerciseManager,
-                UserWordsLearningManager, DailyStatisticsManager)
+from db import (UserProgressManager, UserManager, DailyStatisticsManager)
 from keyboards import keyboard_builder, keyboard_builder_users
 from lexicon import (AdminMenuButtons, MessageTexts, BasicButtons, TestingSections, testing_section_mapping,
                      NewWordsSections)
 from services.new_words import NewWordsService
 from services.testing import TestingService
+from services.user_words_learning import UserWordsLearningService
 from states import AdminFSM, UserFSM
 from utils import (update_state_data, delete_scheduled_broadcasts, schedule_broadcast, send_message_to_user,
                    send_long_message, check_line, get_word_declension)
@@ -26,7 +26,7 @@ testing_service: TestingService = TestingService()
 user_progress_manager: UserProgressManager = UserProgressManager()
 user_manager: UserManager = UserManager()
 new_words_service: NewWordsService = NewWordsService()
-user_words_learning_manager: UserWordsLearningManager = UserWordsLearningManager()
+user_words_learning_service: UserWordsLearningService = UserWordsLearningService()
 daily_progress_manager: DailyStatisticsManager = DailyStatisticsManager()
 
 
@@ -381,11 +381,11 @@ async def admin_adding_words_to_user(message: Message, state: FSMContext):
         if count_exercises > 1:
             for line in lines:
                 words = check_line(line)
-                await user_words_learning_manager.admin_add_words_to_learning(user_id=user_id, russian=words.russian,
+                await user_words_learning_service.admin_add_words_to_learning(user_id=user_id, russian=words.russian,
                                                                               english=words.english)
         else:
             words = check_line(message.text)
-            await user_words_learning_manager.admin_add_words_to_learning(user_id=user_id, russian=words.russian,
+            await user_words_learning_service.admin_add_words_to_learning(user_id=user_id, russian=words.russian,
                                                                           english=words.english)
 
         await message.answer(
@@ -568,13 +568,13 @@ async def admin_adding_words(message: Message, state: FSMContext):
             for line in lines:
                 words = check_line(line)
                 await new_words_service.add_new_words_exercise(section=section, subsection=subsection,
-                                                           russian=words.russian,
-                                                           english=words.english)
+                                                               russian=words.russian,
+                                                               english=words.english)
         else:
             words = check_line(message.text)
             await new_words_service.add_new_words_exercise(section=section, subsection=subsection,
-                                                       russian=words.russian,
-                                                       english=words.english)
+                                                           russian=words.russian,
+                                                           english=words.english)
 
         await message.answer(
             f"""✅Успешно добавлено {get_word_declension(count=count_sentences, word="упражнение")},
@@ -612,8 +612,8 @@ async def admin_edit_words(message: Message, state: FSMContext):
     try:
         words = check_line(message.text)
         await new_words_service.edit_new_words_exercise(section=section, subsection=subsection, russian=words.russian,
-                                                    english=words.english,
-                                                    index=index_words_edit)
+                                                        english=words.english,
+                                                        index=index_words_edit)
         await message.answer('✅Успешно изменено',
                              reply_markup=await keyboard_builder(1, AdminMenuButtons.MAIN_MENU))
         await state.set_state(AdminFSM.default)

@@ -1,16 +1,17 @@
 from aiogram import Bot
 from aiogram.exceptions import TelegramForbiddenError
 
-from db import UserManager, UserWordsLearningManager
+from db import UserManager
 from keyboards import keyboard_builder
 from lexicon import BasicButtons, MessageTexts
 from loggers import get_logger
+from services.user_words_learning import UserWordsLearningService
 from .bot_init import get_bot_instance
 
 logger = get_logger(__name__)
 
 user_manager: UserManager = UserManager()
-user_words_manager: UserWordsLearningManager = UserWordsLearningManager()
+user_words_learning_service: UserWordsLearningService = UserWordsLearningService()
 
 
 async def send_message_to_all_users(text: str):
@@ -61,8 +62,8 @@ async def send_reminder_to_user(user_id: int):
     - user_id (int): The ID of the user.
     """
     bot: Bot = await get_bot_instance()
-    count_words_for_today = await user_words_manager.get_count_all_exercises_for_today_by_user(user_id=user_id)
-    # active_learning_count = await user_words_manager.get_count_active_learning_exercises(user_id=user_id)
+    count_words_for_today = await user_words_learning_service.get_count_all_exercises_for_today_by_user(user_id=user_id)
+    # active_learning_count = await user_words_learning_service.get_count_active_learning_exercises(user_id=user_id)
     try:
         if count_words_for_today > 0:
             word_form = get_word_declension(count_words_for_today)
