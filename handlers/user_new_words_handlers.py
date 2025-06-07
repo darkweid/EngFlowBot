@@ -7,6 +7,8 @@ from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiogram.exceptions import TelegramBadRequest
+
+from services.new_words import NewWordsService
 from states import WordsLearningFSM
 from utils import (send_message_to_admin, update_state_data, send_long_message, get_word_declension,
                    word_with_youglish_link)
@@ -17,7 +19,7 @@ from keyboards import keyboard_builder, keyboard_builder_words_learning
 user_new_words_router: Router = Router()
 user_manager: UserManager = UserManager()
 user_words_manager = UserWordsLearningManager()
-words_manager = NewWordsExerciseManager()
+new_words_service:NewWordsService = NewWordsService()
 daily_stats_manager = DailyStatisticsManager()
 
 
@@ -229,7 +231,7 @@ async def add_new_words_selected_section(callback: CallbackQuery, state: FSMCont
     section = callback.data
     user_id = callback.from_user.id
     user_added_subsections = await user_words_manager.get_added_subsections_by_user(user_id=user_id)
-    subsections = await words_manager.get_subsection_names(section=section)
+    subsections = await new_words_service.get_subsection_names(section=section)
     buttons = [subsection for subsection in subsections if subsection not in user_added_subsections]
     if len(buttons) > 0:
         await callback.answer()
@@ -250,7 +252,7 @@ async def add_new_words_selecting_subsection(callback: CallbackQuery, state: FSM
     user_data = await state.get_data()
     section = user_data.get('section')
     subsection = callback.data
-    quantity = await words_manager.get_count_new_words_exercises_in_subsection(section=section, subsection=subsection)
+    quantity = await new_words_service.get_count_new_words_exercises_in_subsection(section=section, subsection=subsection)
     word_declension = get_word_declension(count=quantity, word='слово')
     await callback.message.edit_text(f"""«{subsection}»\n
 В теме {word_declension}

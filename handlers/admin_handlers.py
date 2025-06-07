@@ -13,6 +13,7 @@ from db import (UserProgressManager, UserManager, NewWordsExerciseManager,
 from keyboards import keyboard_builder, keyboard_builder_users
 from lexicon import (AdminMenuButtons, MessageTexts, BasicButtons, TestingSections, testing_section_mapping,
                      NewWordsSections)
+from services.new_words import NewWordsService
 from services.testing import TestingService
 from states import AdminFSM, UserFSM
 from utils import (update_state_data, delete_scheduled_broadcasts, schedule_broadcast, send_message_to_user,
@@ -24,7 +25,7 @@ admin_router: Router = Router()
 testing_service: TestingService = TestingService()
 user_progress_manager: UserProgressManager = UserProgressManager()
 user_manager: UserManager = UserManager()
-words_manager: NewWordsExerciseManager = NewWordsExerciseManager()
+new_words_service: NewWordsService = NewWordsService()
 user_words_learning_manager: UserWordsLearningManager = UserWordsLearningManager()
 daily_progress_manager: DailyStatisticsManager = DailyStatisticsManager()
 
@@ -407,7 +408,7 @@ async def admin_see_individual_words(callback: CallbackQuery, state: FSMContext)
     await callback.answer()
     data = await state.get_data()
     user_id = data.get('admin_user_id_management')
-    result = await words_manager.get_new_words_exercises(user_id)
+    result = await new_words_service.get_new_words_exercises(user_id)
     if result:
         await callback.answer()
         await send_long_message(callback,
@@ -453,7 +454,7 @@ async def new_words_selecting_section_admin(callback: CallbackQuery, state: FSMC
 async def new_words_selected_section_admin(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     section = callback.data
-    subsections = await words_manager.get_subsection_names(section=section)
+    subsections = await new_words_service.get_subsection_names(section=section)
     buttons = [subsection for subsection in subsections]
 
     await callback.message.edit_text(
@@ -513,7 +514,7 @@ async def admin_words_management(callback: CallbackQuery, state: FSMContext):
     section_subsection = f'\"{section} - {subsection}\"'
 
     if section and callback.data == AdminMenuButtons.SEE_NEW_WORDS:
-        result = await words_manager.get_new_words_exercises(subsection)
+        result = await new_words_service.get_new_words_exercises(subsection)
         if result:
             await callback.answer()
             await send_long_message(callback,
@@ -566,12 +567,12 @@ async def admin_adding_words(message: Message, state: FSMContext):
         if count_sentences > 1:
             for line in lines:
                 words = check_line(line)
-                await words_manager.add_new_words_exercise(section=section, subsection=subsection,
+                await new_words_service.add_new_words_exercise(section=section, subsection=subsection,
                                                            russian=words.russian,
                                                            english=words.english)
         else:
             words = check_line(message.text)
-            await words_manager.add_new_words_exercise(section=section, subsection=subsection,
+            await new_words_service.add_new_words_exercise(section=section, subsection=subsection,
                                                        russian=words.russian,
                                                        english=words.english)
 
@@ -610,7 +611,7 @@ async def admin_edit_words(message: Message, state: FSMContext):
         'index_words_edit')
     try:
         words = check_line(message.text)
-        await words_manager.edit_new_words_exercise(section=section, subsection=subsection, russian=words.russian,
+        await new_words_service.edit_new_words_exercise(section=section, subsection=subsection, russian=words.russian,
                                                     english=words.english,
                                                     index=index_words_edit)
         await message.answer('✅Успешно изменено',
@@ -639,12 +640,12 @@ async def admin_deleting_words(message: Message, state: FSMContext):
         await message.answer(
             f"""✅Слово № {index}\n<b>Удалено</b> из раздела \n{section_subsection}""",
             reply_markup=await keyboard_builder(1, AdminMenuButtons.MAIN_MENU, AdminMenuButtons.EXIT))
-        await words_manager.delete_new_words_exercise(section=section, subsection=subsection, index=index)
+        await new_words_service.delete_new_words_exercise(section=section, subsection=subsection, index=index)
     elif len(indexes) > 1:
         await message.answer(f"""✅Слова № {str(indexes)}\n <b>Удалены</b> из раздела \n{section_subsection}""",
                              reply_markup=await keyboard_builder(1, AdminMenuButtons.MAIN_MENU, AdminMenuButtons.EXIT))
         for index in indexes:
-            await words_manager.delete_new_words_exercise(section=section, subsection=subsection, index=index)
+            await new_words_service.delete_new_words_exercise(section=section, subsection=subsection, index=index)
 
 
 ##################### Activity #####################
