@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     postgres_port: int
     postgres_db: str
 
+    owner_name: str
+    owner_tg_link: str
+
     def build_postgres_dsn(self) -> URL:
         return URL.create(
             "postgresql+asyncpg",
@@ -36,4 +39,4 @@ class Settings(BaseSettings):
     )
 
 
-settings = Settings()
+settings: Settings = Settings()
