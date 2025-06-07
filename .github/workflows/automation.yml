@@ -36,6 +36,6 @@ jobs:
           
               cd $APP_DIR
               git pull origin main
-              make run
+              make deploy-prod
               make clean-resources
             "

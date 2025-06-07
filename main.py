@@ -4,7 +4,6 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
 
 from config_data.settings import settings
-from db import init_db
 from handlers import *
 from keyboards.set_menu import set_main_menu
 from loggers import get_logger
@@ -22,7 +21,6 @@ async def main():
         logger.info('Starting bot')
 
         storage = RedisStorage.from_url(url=REDIS_DSN)
-        await init_db()
         await init_bot_instance(token=BOT_TOKEN)
         bot: Bot = await get_bot_instance()
         dp: Dispatcher = Dispatcher(storage=storage)

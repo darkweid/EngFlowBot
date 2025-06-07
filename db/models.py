@@ -76,8 +76,8 @@ class UserProgress(Base):
                                          primary_key=True,
                                          nullable=False)
     exercise_type: Mapped[str] = mapped_column(String(64), primary_key=True, nullable=False)
-    exercise_section: Mapped[str] = mapped_column(String(64), primary_key=True, nullable=True)
-    exercise_subsection: Mapped[str] = mapped_column(String(64), primary_key=True, nullable=True)
+    exercise_section: Mapped[str] = mapped_column(String(64), primary_key=True, nullable=False)
+    exercise_subsection: Mapped[str] = mapped_column(String(64), primary_key=True, nullable=False)
     exercise_id: Mapped[int] = mapped_column(Integer, primary_key=True, nullable=False)
     attempts: Mapped[int] = mapped_column(Integer, default=1)
     success: Mapped[bool] = mapped_column(Boolean, default=False)
