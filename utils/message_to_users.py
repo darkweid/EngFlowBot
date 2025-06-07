@@ -66,19 +66,19 @@ async def send_reminder_to_user(user_id: int):
     try:
         if count_words_for_today > 0:
             word_form = get_word_declension(count_words_for_today)
-            await bot.send_message(user_id, text=MessageTexts.REMINDER_WORDS_TO_LEARN.value.format(word_form),
+            await bot.send_message(user_id, text=MessageTexts.REMINDER_WORDS_TO_LEARN.format(word_form),
                                    reply_markup=await keyboard_builder(1,
                                                                        learn_new_words=BasicButtons.LEARN_ADDED_WORDS)
                                    )
         # elif count_words_for_today == 0 and active_learning_count < 12:
         #     await bot.send_message(user_id,
-        #                            text=f'{MessageTexts.REMINDER.value}\n{MessageTexts.ADVICE_TO_ADD_MORE_WORDS.value}',
+        #                            text=f'{MessageTexts.REMINDER}\n{MessageTexts.ADVICE_TO_ADD_MORE_WORDS}',
         #                            reply_markup=await keyboard_builder(1,
         #                                                                BasicButtons.MAIN_MENU,
         #                                                                add_new_words=BasicButtons.ADD_WORDS,
         #                                                                args_go_first=False))
         # elif count_words_for_today == 0 and active_learning_count > 12:
-        #     await bot.send_message(user_id, text=MessageTexts.REMINDER.value,
+        #     await bot.send_message(user_id, text=MessageTexts.REMINDER,
         #                            reply_markup=await keyboard_builder(1, BasicButtons.MAIN_MENU))
     except TelegramForbiddenError as e:
         logger.error(f'Failed to send message to user {user_id}:\n{e}')

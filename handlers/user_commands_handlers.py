@@ -30,13 +30,13 @@ async def process_start_command(message: Message, state: FSMContext):
     full_name = message.from_user.full_name
     tg_login = message.from_user.username
     await user_manager.add_user(user_id, full_name, tg_login)
-    await message.answer(MessageTexts.WELCOME_NEW_USER.value.format(user_name=full_name,
+    await message.answer(MessageTexts.WELCOME_NEW_USER.format(user_name=full_name,
                                                                     owner_tg_link=settings.owner_tg_link,
                                                                     owner_name=settings.owner_name),
                          link_preview_options=LinkPreviewOptions(is_disabled=True),
                          reply_markup=await keyboard_builder(1, set_tz_new_user=BasicButtons.TURN_ON_REMINDER))
-    await message.answer(MessageTexts.WELCOME_EXISTING_USER.value,
-                         reply_markup=await keyboard_builder(1, *[button.value for button in MainMenuButtons]))
+    await message.answer(MessageTexts.WELCOME_EXISTING_USER,
+                         reply_markup=await keyboard_builder(1, *[button for button in MainMenuButtons]))
     await send_message_to_admin(
         text=f"""Зарегистрирован новый пользователь.
 Имя: {message.from_user.full_name}
@@ -55,14 +55,14 @@ async def process_start_command_existing_user(message: Message, state: FSMContex
     full_name = message.from_user.full_name
     tg_login = message.from_user.username
     await user_manager.add_user(user_id, full_name, tg_login)
-    await message.answer(MessageTexts.WELCOME_EXISTING_USER.value,
-                         reply_markup=await keyboard_builder(1, *[button.value for button in MainMenuButtons]))
+    await message.answer(MessageTexts.WELCOME_EXISTING_USER,
+                         reply_markup=await keyboard_builder(1, *[button for button in MainMenuButtons]))
     await state.set_state(UserFSM.default)
 
 
 @user_commands_router.message(Command(commands=["info"]))
 async def info_command(message: Message, state: FSMContext):
     await state.set_state(UserFSM.default)
-    await message.answer(MessageTexts.INFO_RULES.value.format(owner_tg_link=settings.owner_tg_link),
+    await message.answer(MessageTexts.INFO_RULES.format(owner_tg_link=settings.owner_tg_link),
                          link_preview_options=LinkPreviewOptions(is_disabled=True),
                          reply_markup=await keyboard_builder(1, BasicButtons.MAIN_MENU))

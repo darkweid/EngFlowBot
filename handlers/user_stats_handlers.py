@@ -15,7 +15,7 @@ user_manager = UserManager()
 async def stats_user_command(message: Message):
     user_id = message.from_user.id
     info = await user_manager.get_user_info_text(user_id, admin=False)
-    await message.answer(f'{info}\n\n{MessageTexts.STATS_USER.value}',
+    await message.answer(f'{info}\n\n{MessageTexts.STATS_USER}',
                          reply_markup=await keyboard_builder(1, BasicButtons.CLOSE, args_go_first=False,
                                                              stats_today=BasicButtons.TODAY,
                                                              stats_last_week=BasicButtons.LAST_WEEK,

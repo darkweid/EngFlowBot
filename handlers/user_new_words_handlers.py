@@ -21,7 +21,7 @@ words_manager = NewWordsExerciseManager()
 daily_stats_manager = DailyStatisticsManager()
 
 
-@user_new_words_router.callback_query(F.data == MainMenuButtons.NEW_WORDS.value)
+@user_new_words_router.callback_query(F.data == MainMenuButtons.NEW_WORDS)
 @user_new_words_router.callback_query(F.data == 'back_to_main_menu_new_words')
 @user_new_words_router.callback_query(F.data == 'turn_off_hard_mode_words')
 @user_new_words_router.callback_query(F.data == 'turn_on_hard_mode_words')
@@ -88,7 +88,7 @@ async def send_no_words_for_today_message(callback: CallbackQuery):
     count_active_exercises = await user_words_manager.get_count_active_learning_exercises(user_id=user_id)
     learned_words = await user_words_manager.get_count_learned_exercises(user_id=user_id)
     message_text = f"{random.choice(list_right_answers)}🔥\n" \
-                   f"{MessageTexts.NO_WORDS_TO_LEARN_TODAY.value}\n" \
+                   f"{MessageTexts.NO_WORDS_TO_LEARN_TODAY}\n" \
                    f"Cлов в активном изучении: {count_active_exercises}\n" \
                    f"Изучено всего: {learned_words}"
     await callback.message.answer(message_text, reply_markup=await keyboard_builder(1,
@@ -100,7 +100,7 @@ async def send_hello_message_new_words(callback: CallbackQuery, user_id: int):
     count_active_exercises = await user_words_manager.get_count_active_learning_exercises(user_id=user_id)
     count_exercises_today = await user_words_manager.get_count_all_exercises_for_today_by_user(user_id=user_id)
     learned_words = await user_words_manager.get_count_learned_exercises(user_id=user_id)
-    message_text = f"{MessageTexts.NEW_WORDS_HELLO.value}\n" \
+    message_text = f"{MessageTexts.NEW_WORDS_HELLO}\n" \
                    f"Cлов в активном изучении: {count_active_exercises}\n" \
                    f"Для изучения сегодня: {count_exercises_today}\n" \
                    f"Изучено всего: {learned_words}"
@@ -218,7 +218,7 @@ async def not_correct_answer_learning_words(callback: CallbackQuery, state: FSMC
 async def add_new_words_selecting_section(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.edit_text(MessageTexts.SELECT_SECTION_WORDS,
-                                     reply_markup=await keyboard_builder(1, *[button.value for button in
+                                     reply_markup=await keyboard_builder(1, *[button for button in
                                                                               NewWordsSections],
                                                                          back_to_main_menu_new_words=BasicButtons.BACK))
     await state.set_state(WordsLearningFSM.add_words_to_learn)
@@ -234,7 +234,7 @@ async def add_new_words_selected_section(callback: CallbackQuery, state: FSMCont
     if len(buttons) > 0:
         await callback.answer()
         await callback.message.edit_text(
-            MessageTexts.SELECT_SUBSECTION_WORDS.value,
+            MessageTexts.SELECT_SUBSECTION_WORDS,
             reply_markup=await keyboard_builder(1, *buttons,  # subsection buttons
                                                 back_to_sections=BasicButtons.BACK,
                                                 back_to_main_menu_new_words=BasicButtons.MAIN_MENU_NEW_WORDS))

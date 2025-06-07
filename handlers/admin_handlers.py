@@ -44,7 +44,7 @@ async def admin_command(message: Message, state: FSMContext):
         await message.answer('🚫 Вам сюда нельзя 🚫')
 
 
-@admin_router.callback_query((F.data == AdminMenuButtons.MAIN_MENU.value))
+@admin_router.callback_query((F.data == AdminMenuButtons.MAIN_MENU))
 async def admin_command(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text('🔘 Привет, что будем делать? 🔘',
                                      reply_markup=await keyboard_builder(1, AdminMenuButtons.EXERCISES,
@@ -58,7 +58,7 @@ async def admin_command(callback: CallbackQuery, state: FSMContext):
 
 
 @admin_router.callback_query((F.data == 'close_message_admin'), ~StateFilter(AdminFSM.see_user_info))
-@admin_router.callback_query((F.data == AdminMenuButtons.EXIT.value))
+@admin_router.callback_query((F.data == AdminMenuButtons.EXIT))
 async def admin_exit(callback: CallbackQuery, state: FSMContext):
     try:
         await callback.message.delete()
@@ -79,8 +79,8 @@ async def close_message_without_state_changes(callback: CallbackQuery):
         logging.error(f"Failed to delete message: {e}")
 
 
-@admin_router.callback_query((F.data == AdminMenuButtons.EXERCISES.value), StateFilter(AdminFSM.default))
-@admin_router.callback_query((F.data == BasicButtons.BACK.value), StateFilter(AdminFSM.select_section_testing))
+@admin_router.callback_query((F.data == AdminMenuButtons.EXERCISES), StateFilter(AdminFSM.default))
+@admin_router.callback_query((F.data == BasicButtons.BACK), StateFilter(AdminFSM.select_section_testing))
 async def admin_exercises(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text('Выбери группу упражнений:',
                                      reply_markup=await keyboard_builder(1, AdminMenuButtons.MAIN_MENU,
@@ -93,12 +93,12 @@ async def admin_exercises(callback: CallbackQuery, state: FSMContext):
 
 
 ########################################## Testing ##########################################
-@admin_router.callback_query((F.data == BasicButtons.BACK.value), StateFilter(AdminFSM.select_subsection_testing))
+@admin_router.callback_query((F.data == BasicButtons.BACK), StateFilter(AdminFSM.select_subsection_testing))
 @admin_router.callback_query((F.data == 'tests_admin'))
 async def admin_start_testing(callback: CallbackQuery, state: FSMContext):  # выбор раздела тестов
     await callback.answer()
     await callback.message.edit_text('Выбери раздел тестов:',
-                                     reply_markup=await keyboard_builder(1, *[button.value for button in
+                                     reply_markup=await keyboard_builder(1, *[button for button in
                                                                               TestingSections], BasicButtons.BACK,
                                                                          BasicButtons.MAIN_MENU))
     await state.set_state(AdminFSM.select_section_testing)
@@ -109,13 +109,13 @@ async def admin_choosing_section_testing(callback: CallbackQuery, state: FSMCont
     section = testing_section_mapping.get(callback.data)
     if section is None:
         await callback.answer()
-        await callback.message.edit_text(MessageTexts.ERROR.value)
+        await callback.message.edit_text(MessageTexts.ERROR)
         await state.set_state(UserFSM.default)
         return
 
     await callback.message.edit_text(
-        MessageTexts.CHOOSE_SUBSECTION_TEST.value,
-        reply_markup=await keyboard_builder(1, *[button.value for button in section], BasicButtons.BACK,
+        MessageTexts.CHOOSE_SUBSECTION_TEST,
+        reply_markup=await keyboard_builder(1, *[button for button in section], BasicButtons.BACK,
                                             BasicButtons.MAIN_MENU))
     await state.set_state(AdminFSM.select_subsection_testing)
     await update_state_data(state, admin_section=callback.data, admin_subsection=None)
@@ -140,16 +140,16 @@ async def admin_choosing_subsection_testing(callback: CallbackQuery, state: FSMC
     await state.set_state(AdminFSM.select_management_action_testing)
 
 
-@admin_router.callback_query(F.data == AdminMenuButtons.SEE_EXERCISES_TESTING.value)
-@admin_router.callback_query(F.data == AdminMenuButtons.ADD_EXERCISE_TESTING.value)
-@admin_router.callback_query(F.data == AdminMenuButtons.EDIT_EXERCISE_TESTING.value)
-@admin_router.callback_query(F.data == AdminMenuButtons.DEL_EXERCISE_TESTING.value)
+@admin_router.callback_query(F.data == AdminMenuButtons.SEE_EXERCISES_TESTING)
+@admin_router.callback_query(F.data == AdminMenuButtons.ADD_EXERCISE_TESTING)
+@admin_router.callback_query(F.data == AdminMenuButtons.EDIT_EXERCISE_TESTING)
+@admin_router.callback_query(F.data == AdminMenuButtons.DEL_EXERCISE_TESTING)
 async def admin_testing_management(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     subsection, section = data.get('admin_subsection'), data.get('admin_section')
     section_subsection = f'\"{section} - {subsection}\"'
 
-    if section and callback.data == AdminMenuButtons.SEE_EXERCISES_TESTING.value:
+    if section and callback.data == AdminMenuButtons.SEE_EXERCISES_TESTING:
         result = await testing_service.get_testing_exercises(subsection)
         if result:
             await callback.answer()
@@ -162,7 +162,7 @@ async def admin_testing_management(callback: CallbackQuery, state: FSMContext):
                                                                                  AdminMenuButtons.EXIT))
 
 
-    elif callback.data == AdminMenuButtons.ADD_EXERCISE_TESTING.value:
+    elif callback.data == AdminMenuButtons.ADD_EXERCISE_TESTING:
         await callback.message.edit_text(
             f"""Введи предложение и ответ к нему для добавления в раздел\n{section_subsection}\n
 В формате: \nEnglish sentence=+=Answer
@@ -172,7 +172,7 @@ async def admin_testing_management(callback: CallbackQuery, state: FSMContext):
                                                 AdminMenuButtons.EXIT))
         await state.set_state(AdminFSM.adding_exercise_testing)
 
-    elif callback.data == AdminMenuButtons.EDIT_EXERCISE_TESTING.value:
+    elif callback.data == AdminMenuButtons.EDIT_EXERCISE_TESTING:
         await callback.message.edit_text(
             f'Введи номер предложения для редактирования в разделе\n{section_subsection}\n',
             reply_markup=await keyboard_builder(1, AdminMenuButtons.MAIN_MENU,
@@ -180,7 +180,7 @@ async def admin_testing_management(callback: CallbackQuery, state: FSMContext):
         await state.set_state(AdminFSM.editing_exercise_testing)
 
 
-    elif callback.data == AdminMenuButtons.DEL_EXERCISE_TESTING.value:
+    elif callback.data == AdminMenuButtons.DEL_EXERCISE_TESTING:
         await callback.message.edit_text(f"""Введи номер предложения для удаления из\n{section_subsection}\n
 Если нужно удалить одно предложение - введи номер предложения,
 если несколько - введи номера предложений через запятую""",
@@ -278,7 +278,7 @@ async def admin_deleting_sentence_testing(message: Message, state: FSMContext):
 
 ########################################## Users ##########################################
 
-@admin_router.callback_query(F.data == AdminMenuButtons.USERS.value)
+@admin_router.callback_query(F.data == AdminMenuButtons.USERS)
 async def admin_users(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     users = await user_manager.get_all_users()
@@ -304,7 +304,7 @@ async def admin_users(callback: CallbackQuery, state: FSMContext):
     await state.set_state(AdminFSM.see_user_management)
 
 
-@admin_router.callback_query(F.data == AdminMenuButtons.CLOSE.value, StateFilter(AdminFSM.see_user_management))
+@admin_router.callback_query(F.data == AdminMenuButtons.CLOSE, StateFilter(AdminFSM.see_user_management))
 async def admin_see_user_info_close_message(callback: CallbackQuery):
     await callback.answer()
     try:
@@ -313,7 +313,7 @@ async def admin_see_user_info_close_message(callback: CallbackQuery):
         logging.error(f"Failed to delete message: {e}")
 
 
-@admin_router.callback_query(F.data == AdminMenuButtons.DEL_USER.value)
+@admin_router.callback_query(F.data == AdminMenuButtons.DEL_USER)
 async def admin_delete_user(callback: CallbackQuery):
     await callback.answer()
     await callback.message.edit_text("Удалить пользователя?",
@@ -351,7 +351,7 @@ async def admin_see_user_info(callback: CallbackQuery, state: FSMContext):
 
 ##################### Individual words #####################
 
-@admin_router.callback_query(F.data == AdminMenuButtons.ADD_WORDS_TO_USER_LEARNING.value,
+@admin_router.callback_query(F.data == AdminMenuButtons.ADD_WORDS_TO_USER_LEARNING,
                              StateFilter(AdminFSM.user_managing))
 async def admin_add_words_to_user(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
@@ -401,7 +401,7 @@ async def admin_adding_words_to_user(message: Message, state: FSMContext):
                              reply_markup=await keyboard_builder(1, AdminMenuButtons.EXIT))
 
 
-@admin_router.callback_query(F.data == AdminMenuButtons.SEE_INDIVIDUAL_WORDS.value,
+@admin_router.callback_query(F.data == AdminMenuButtons.SEE_INDIVIDUAL_WORDS,
                              StateFilter(AdminFSM.user_managing))
 async def admin_see_individual_words(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
@@ -421,7 +421,7 @@ async def admin_see_individual_words(callback: CallbackQuery, state: FSMContext)
                                                                              AdminMenuButtons.EXIT))
 
 
-@admin_router.callback_query(F.data == AdminMenuButtons.DEL_INDIVIDUAL_WORDS.value,
+@admin_router.callback_query(F.data == AdminMenuButtons.DEL_INDIVIDUAL_WORDS,
                              StateFilter(AdminFSM.user_managing))
 async def admin_del_individual_words(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
@@ -442,8 +442,8 @@ async def admin_del_individual_words(callback: CallbackQuery, state: FSMContext)
 @admin_router.callback_query(F.data == 'back_to_sections_new_words_admin')
 async def new_words_selecting_section_admin(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
-    await callback.message.edit_text(MessageTexts.SELECT_SECTION_WORDS.value,
-                                     reply_markup=await keyboard_builder(1, *[button.value for button in
+    await callback.message.edit_text(MessageTexts.SELECT_SECTION_WORDS,
+                                     reply_markup=await keyboard_builder(1, *[button for button in
                                                                               NewWordsSections],
                                                                          AdminMenuButtons.MAIN_MENU))
     await state.set_state(AdminFSM.select_section_words)
@@ -457,7 +457,7 @@ async def new_words_selected_section_admin(callback: CallbackQuery, state: FSMCo
     buttons = [subsection for subsection in subsections]
 
     await callback.message.edit_text(
-        MessageTexts.SELECT_SUBSECTION_WORDS.value,
+        MessageTexts.SELECT_SUBSECTION_WORDS,
         reply_markup=await keyboard_builder(1, *buttons,  # subsection buttons
                                             AdminMenuButtons.ADD_NEW_SECTION,
                                             AdminMenuButtons.MAIN_MENU,
@@ -469,7 +469,7 @@ async def new_words_selected_section_admin(callback: CallbackQuery, state: FSMCo
 @admin_router.callback_query(StateFilter(AdminFSM.select_subsection_words))
 async def selected_subsection_new_words_admin(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
-    if callback.data != AdminMenuButtons.ADD_NEW_SECTION.value:
+    if callback.data != AdminMenuButtons.ADD_NEW_SECTION:
         await update_state_data(state, admin_subsection=callback.data)
         await state.set_state(AdminFSM.select_management_action_words)
         await callback.message.edit_text('Что хочешь делать?',
@@ -479,7 +479,7 @@ async def selected_subsection_new_words_admin(callback: CallbackQuery, state: FS
                                                                              AdminMenuButtons.EDIT_NEW_WORDS,
                                                                              AdminMenuButtons.MAIN_MENU,
                                                                              AdminMenuButtons.EXIT))
-    elif callback.data == AdminMenuButtons.ADD_NEW_SECTION.value:
+    elif callback.data == AdminMenuButtons.ADD_NEW_SECTION:
         await callback.message.edit_text("""Введи название нового раздела, обращай внимание на регистр букв.
 После добавления нового раздела нужно будет добавить хотя бы одно упражнение""",
                                          reply_markup=await keyboard_builder(1, AdminMenuButtons.MAIN_MENU,
@@ -497,22 +497,22 @@ async def adding_new_section_to_words_admin(message: Message, state: FSMContext)
                                                              AdminMenuButtons.EXIT))
 
 
-@admin_router.callback_query(F.data == AdminMenuButtons.SEE_NEW_WORDS.value,
+@admin_router.callback_query(F.data == AdminMenuButtons.SEE_NEW_WORDS,
                              StateFilter(AdminFSM.select_management_action_words))
-@admin_router.callback_query(F.data == AdminMenuButtons.ADD_NEW_WORDS.value,
+@admin_router.callback_query(F.data == AdminMenuButtons.ADD_NEW_WORDS,
                              StateFilter(AdminFSM.select_management_action_words))
-@admin_router.callback_query(F.data == AdminMenuButtons.YES.value,
+@admin_router.callback_query(F.data == AdminMenuButtons.YES,
                              StateFilter(AdminFSM.adding_new_section))
-@admin_router.callback_query(F.data == AdminMenuButtons.EDIT_NEW_WORDS.value,
+@admin_router.callback_query(F.data == AdminMenuButtons.EDIT_NEW_WORDS,
                              StateFilter(AdminFSM.select_management_action_words))
-@admin_router.callback_query(F.data == AdminMenuButtons.DEL_NEW_WORDS.value,
+@admin_router.callback_query(F.data == AdminMenuButtons.DEL_NEW_WORDS,
                              StateFilter(AdminFSM.select_management_action_words))
 async def admin_words_management(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     subsection, section = data.get('admin_subsection'), data.get('admin_section')
     section_subsection = f'\"{section} - {subsection}\"'
 
-    if section and callback.data == AdminMenuButtons.SEE_NEW_WORDS.value:
+    if section and callback.data == AdminMenuButtons.SEE_NEW_WORDS:
         result = await words_manager.get_new_words_exercises(subsection)
         if result:
             await callback.answer()
@@ -526,7 +526,7 @@ async def admin_words_management(callback: CallbackQuery, state: FSMContext):
                                                                                  AdminMenuButtons.EXIT))
 
 
-    elif callback.data == AdminMenuButtons.ADD_NEW_WORDS.value or callback.data == AdminMenuButtons.YES.value:
+    elif callback.data == AdminMenuButtons.ADD_NEW_WORDS or callback.data == AdminMenuButtons.YES:
         await callback.message.edit_text(
             f"""Добавление слов в раздел\n{section_subsection}\n
 Введи слово и перевод к нему <b><i>в формате: \nСлово=+=Word или Слово|Word
@@ -537,7 +537,7 @@ async def admin_words_management(callback: CallbackQuery, state: FSMContext):
                                                 AdminMenuButtons.EXIT))
         await state.set_state(AdminFSM.adding_exercise_words)
 
-    elif callback.data == AdminMenuButtons.EDIT_NEW_WORDS.value:
+    elif callback.data == AdminMenuButtons.EDIT_NEW_WORDS:
         await callback.message.edit_text(
             f'Введи номер слова для редактирования в разделе\n{section_subsection}\n',
             reply_markup=await keyboard_builder(1, AdminMenuButtons.MAIN_MENU,
@@ -545,7 +545,7 @@ async def admin_words_management(callback: CallbackQuery, state: FSMContext):
         await state.set_state(AdminFSM.editing_exercise_words)
 
 
-    elif callback.data == AdminMenuButtons.DEL_NEW_WORDS.value:
+    elif callback.data == AdminMenuButtons.DEL_NEW_WORDS:
         await callback.message.edit_text(
             f"""Введи номер слова/слов для удаления из\n{section_subsection}\n
 Если нужно удалить одно - введи номер,
@@ -648,19 +648,19 @@ async def admin_deleting_words(message: Message, state: FSMContext):
 
 
 ##################### Activity #####################
-@admin_router.callback_query(F.data == AdminMenuButtons.SEE_ACTIVITY_DAY.value)
-@admin_router.callback_query(F.data == AdminMenuButtons.SEE_ACTIVITY_WEEK.value)
-@admin_router.callback_query(F.data == AdminMenuButtons.SEE_ACTIVITY_MONTH.value)
+@admin_router.callback_query(F.data == AdminMenuButtons.SEE_ACTIVITY_DAY)
+@admin_router.callback_query(F.data == AdminMenuButtons.SEE_ACTIVITY_WEEK)
+@admin_router.callback_query(F.data == AdminMenuButtons.SEE_ACTIVITY_MONTH)
 async def admin_activity(callback: CallbackQuery):
     cbdata = callback.data
     today = date.today()
-    if cbdata == AdminMenuButtons.SEE_ACTIVITY_DAY.value:
+    if cbdata == AdminMenuButtons.SEE_ACTIVITY_DAY:
         stats = await daily_progress_manager.get(start_date=today, end_date=today)
         period = 'сегодня'
-    elif cbdata == AdminMenuButtons.SEE_ACTIVITY_WEEK.value:
+    elif cbdata == AdminMenuButtons.SEE_ACTIVITY_WEEK:
         stats = await daily_progress_manager.get(start_date=today - timedelta(days=7), end_date=today)
         period = 'неделю'
-    elif cbdata == AdminMenuButtons.SEE_ACTIVITY_MONTH.value:
+    elif cbdata == AdminMenuButtons.SEE_ACTIVITY_MONTH:
         stats = await daily_progress_manager.get(start_date=today - timedelta(days=30), end_date=today)
         period = 'месяц'
 
@@ -674,9 +674,9 @@ async def admin_activity(callback: CallbackQuery):
 
 
 ##################### Broadcast #####################
-@admin_router.callback_query((F.data == AdminMenuButtons.BROADCAST.value))
+@admin_router.callback_query((F.data == AdminMenuButtons.BROADCAST))
 async def start_broadcast(callback: CallbackQuery):
-    await callback.message.edit_text(text=AdminMenuButtons.BROADCAST.value,
+    await callback.message.edit_text(text=AdminMenuButtons.BROADCAST,
                                      reply_markup=await keyboard_builder(
                                          1,
                                          AdminMenuButtons.ADD_BROADCAST,
@@ -702,7 +702,7 @@ async def sure_delete_broadcast(callback: CallbackQuery):
                                      reply_markup=await keyboard_builder(1, AdminMenuButtons.CLOSE))
 
 
-@admin_router.callback_query((F.data == AdminMenuButtons.ADD_BROADCAST.value))
+@admin_router.callback_query((F.data == AdminMenuButtons.ADD_BROADCAST))
 async def add_broadcast_date_time(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.edit_text("""Введи дату и время в формате\nHH:MM dd.mm.yyyy\nЧасовой пояс UTC+3(Мск)""")

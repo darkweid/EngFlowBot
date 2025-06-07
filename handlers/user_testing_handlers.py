@@ -26,7 +26,7 @@ daily_stats_manager = DailyStatisticsManager()
 @user_testing_router.callback_query((F.data == 'rules_testing'))
 async def rules_testing(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.edit_text(MessageTexts.TEST_RULES.value,
+    await callback.message.edit_text(MessageTexts.TEST_RULES,
                                      reply_markup=await keyboard_builder(1, close_rules_tests=BasicButtons.CLOSE))
 
 
@@ -39,27 +39,27 @@ async def close_rules_testing(callback: CallbackQuery):
         logging.error(f"Failed to delete message: {e}")
 
 
-@user_testing_router.callback_query((F.data == MainMenuButtons.TESTING.value))  # выбор раздела для прохождения теста
+@user_testing_router.callback_query((F.data == MainMenuButtons.TESTING))  # выбор раздела для прохождения теста
 async def start_testing_with_rules(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
-    await callback.message.edit_text(MessageTexts.TESTING_HELLO.value,
+    await callback.message.edit_text(MessageTexts.TESTING_HELLO,
                                      reply_markup=await keyboard_builder(1, rules_testing=BasicButtons.RULES,
                                                                          close_rules_tests=BasicButtons.CLOSE))
     # await asyncio.sleep(3)
     sections = await testing_service.get_section_names()
-    await callback.message.answer(MessageTexts.CHOOSE_SECTION.value,
+    await callback.message.answer(MessageTexts.CHOOSE_SECTION,
                                   reply_markup=await keyboard_builder(1, *[section for section in sections],
                                                                       BasicButtons.MAIN_MENU))
     await state.set_state(TestingFSM.selecting_section)
 
 
-@user_testing_router.callback_query((F.data == BasicButtons.BACK.value),
+@user_testing_router.callback_query((F.data == BasicButtons.BACK),
                                     StateFilter(TestingFSM.selecting_subsection))
 @user_testing_router.callback_query((F.data == 'choose_other_section_training'))
 async def start_testing(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     sections = await testing_service.get_section_names()
-    await callback.message.edit_text(MessageTexts.CHOOSE_SECTION.value,
+    await callback.message.edit_text(MessageTexts.CHOOSE_SECTION,
                                      reply_markup=await keyboard_builder(1, *[section for section in sections],
                                                                          BasicButtons.MAIN_MENU))
     await state.set_state(TestingFSM.selecting_section)
@@ -71,7 +71,7 @@ async def choosing_section_testing(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     subsections = await testing_service.get_subsection_names(section=section)
     await callback.message.edit_text(
-        MessageTexts.CHOOSE_SUBSECTION_TEST.value,
+        MessageTexts.CHOOSE_SUBSECTION_TEST,
         reply_markup=await keyboard_builder(1, *[subsection for subsection in subsections], BasicButtons.BACK,
                                             BasicButtons.MAIN_MENU))
     await state.set_state(TestingFSM.selecting_subsection)
@@ -86,8 +86,8 @@ async def choosing_subsection_testing(callback: CallbackQuery, state: FSMContext
     section = data.get('section')
     subsection = callback.data
     additional_rules = ''
-    if subsection == PrepositionsSections.PREPOSITIONS_OF_THE_TIME.value:
-        additional_rules = '\n' + MessageTexts.PREPOSITIONS_OF_THE_TIME_RULES.value + '\n'
+    if subsection == PrepositionsSections.PREPOSITIONS_OF_THE_TIME:
+        additional_rules = '\n' + MessageTexts.PREPOSITIONS_OF_THE_TIME_RULES + '\n'
 
     await callback.message.edit_text(f"""<b>«{subsection}»</b>{additional_rules}
 Are you ready?""", reply_markup=await keyboard_builder(1, BasicButtons.MAIN_MENU, args_go_first=False,
@@ -117,7 +117,7 @@ async def chose_subsection_testing(callback: CallbackQuery, state: FSMContext, p
         first_try_count, success_count, total_exercises_count = await user_progress_manager.get_counts_completed_exercises_testing(
             user_id=user_id, section=section,
             subsection=subsection)
-        await callback.message.answer(f"""{MessageTexts.ALL_EXERCISES_COMPLETED.value}
+        await callback.message.answer(f"""{MessageTexts.ALL_EXERCISES_COMPLETED}
 Всего заданий выполнено: <b>{success_count} из {total_exercises_count}</b>
 С первой попытки: <b>{first_try_count}</b>""",
                                       reply_markup=await keyboard_builder(1,
@@ -153,7 +153,7 @@ async def in_process_testing(message: Message, state: FSMContext):
             first_try_count, success_count, total_exercises_count = await user_progress_manager.get_counts_completed_exercises_testing(
                 user_id=user_id, section=section,
                 subsection=subsection)
-            await message.answer(f"""{MessageTexts.ALL_EXERCISES_COMPLETED.value}
+            await message.answer(f"""{MessageTexts.ALL_EXERCISES_COMPLETED}
 Всего заданий выполнено: <b>{success_count} из {total_exercises_count}</b>
 С первой попытки: <b>{first_try_count}</b>""",
                                  reply_markup=await keyboard_builder(1, start_again_test=BasicButtons.START_AGAIN,
@@ -171,7 +171,7 @@ async def in_process_testing(message: Message, state: FSMContext):
                 await message.answer(f'{random.choice(list_right_answers)}')
                 await message.answer(test)
     else:
-        await message.answer(MessageTexts.INCORRECT_ANSWER.value,
+        await message.answer(MessageTexts.INCORRECT_ANSWER,
                              reply_markup=await keyboard_builder(1, see_answer_testing=BasicButtons.SEE_ANSWER))
         await user_progress_manager.mark_exercise_completed(exercise_type='Testing', section=section,
                                                             subsection=subsection,
@@ -181,7 +181,7 @@ async def in_process_testing(message: Message, state: FSMContext):
 @user_testing_router.callback_query((F.data == 'start_again_test'))
 async def start_again_testing(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.edit_text(MessageTexts.ARE_YOU_SURE_START_AGAIN.value,
+    await callback.message.edit_text(MessageTexts.ARE_YOU_SURE_START_AGAIN,
                                      reply_markup=await keyboard_builder(1, BasicButtons.CLOSE, args_go_first=False,
                                                                          sure_start_again_test=BasicButtons.START_AGAIN))
 

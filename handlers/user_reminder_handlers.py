@@ -43,12 +43,12 @@ async def reminder_command(message: Message):
                                                                  BasicButtons.CLOSE))
 
 
-@user_reminder_router.callback_query(F.data == BasicButtons.CHANGE_TIME_ZONE.value)
+@user_reminder_router.callback_query(F.data == BasicButtons.CHANGE_TIME_ZONE)
 @user_reminder_router.callback_query(F.data == 'set_tz_new_user')
 
 async def choose_timezone(callback: CallbackQuery):
     await callback.answer()
-    await callback.message.answer(MessageTexts.CHOOSE_TIMEZONE.value,
+    await callback.message.answer(MessageTexts.CHOOSE_TIMEZONE,
                                   reply_markup=await keyboard_builder(4, BasicButtons.CLOSE, args_go_first=False,
                                                                       **time_zones))
 
@@ -64,7 +64,7 @@ async def set_timezone(callback: CallbackQuery):
     await schedule_reminders()
 
 
-@user_reminder_router.callback_query(F.data == BasicButtons.CHANGE_REMINDER_TIME.value)
+@user_reminder_router.callback_query(F.data == BasicButtons.CHANGE_REMINDER_TIME)
 async def set_reminder(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     await callback.message.answer(f"""В какое время тебе напоминать заниматься?
@@ -73,7 +73,7 @@ async def set_reminder(callback: CallbackQuery, state: FSMContext):
     await state.set_state(UserFSM.set_reminder_time)
 
 
-@user_reminder_router.callback_query(F.data == BasicButtons.TURN_OFF_REMINDER.value)
+@user_reminder_router.callback_query(F.data == BasicButtons.TURN_OFF_REMINDER)
 async def turn_off_reminder(callback: CallbackQuery):
     await callback.answer()
     await user_manager.set_reminder_time(user_id=callback.from_user.id, time=None)
