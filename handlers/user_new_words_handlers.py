@@ -18,7 +18,6 @@ from utils import (send_message_to_admin, update_state_data, send_long_message, 
                    word_with_youglish_link)
 
 user_new_words_router: Router = Router()
-user_manager: UserManager = UserManager()
 user_words_learning_service: UserWordsLearningService = UserWordsLearningService()
 new_words_service: NewWordsService = NewWordsService()
 daily_stats_manager = DailyStatisticsManager()

@@ -3,20 +3,20 @@ from aiogram.filters import Command, StateFilter
 from aiogram.fsm.state import default_state
 from aiogram.types import CallbackQuery, Message
 
-from db import UserManager
 from keyboards import keyboard_builder
 from lexicon import MessageTexts, BasicButtons
+from services.user import UserService
 from services.user_progress import UserProgressService
 
 user_stats_router: Router = Router()
 user_progress_service: UserProgressService = UserProgressService()
-user_manager = UserManager()
+user_service: UserService = UserService()
 
 
 @user_stats_router.message(Command(commands=["stats"]), ~StateFilter(default_state))
 async def stats_user_command(message: Message):
     user_id = message.from_user.id
-    info = await user_manager.get_user_info_text(user_id, admin=False)
+    info = await user_service.get_user_info_text(user_id, admin=False)
     await message.answer(f'{info}\n\n{MessageTexts.STATS_USER}',
                          reply_markup=await keyboard_builder(1, BasicButtons.CLOSE, args_go_first=False,
                                                              stats_today=BasicButtons.TODAY,

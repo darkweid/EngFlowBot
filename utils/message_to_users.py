@@ -1,16 +1,16 @@
 from aiogram import Bot
 from aiogram.exceptions import TelegramForbiddenError
 
-from db import UserManager
 from keyboards import keyboard_builder
 from lexicon import BasicButtons, MessageTexts
 from loggers import get_logger
+from services.user import UserService
 from services.user_words_learning import UserWordsLearningService
 from .bot_init import get_bot_instance
 
 logger = get_logger(__name__)
 
-user_manager: UserManager = UserManager()
+user_service: UserService = UserService()
 user_words_learning_service: UserWordsLearningService = UserWordsLearningService()
 
 
@@ -24,7 +24,7 @@ async def send_message_to_all_users(text: str):
     bot: Bot = await get_bot_instance()
     if bot is None:
         raise Exception('Bot instance is not available')
-    users = await user_manager.get_all_users()
+    users = await user_service.get_all_users()
     for user in users:
         user_id = user.get('user_id')
         try:

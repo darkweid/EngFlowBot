@@ -8,12 +8,13 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from config_data.settings import settings
-from db import (UserManager, DailyStatisticsManager)
+from db import (DailyStatisticsManager)
 from keyboards import keyboard_builder, keyboard_builder_users
 from lexicon import (AdminMenuButtons, MessageTexts, BasicButtons, TestingSections, testing_section_mapping,
                      NewWordsSections)
 from services.new_words import NewWordsService
 from services.testing import TestingService
+from services.user import UserService
 from services.user_progress import UserProgressService
 from services.user_words_learning import UserWordsLearningService
 from states import AdminFSM, UserFSM
@@ -25,7 +26,7 @@ ADMINS: list[int] = settings.admin_ids
 admin_router: Router = Router()
 testing_service: TestingService = TestingService()
 user_progress_service: UserProgressService = UserProgressService()
-user_manager: UserManager = UserManager()
+user_service: UserService = UserService()
 new_words_service: NewWordsService = NewWordsService()
 user_words_learning_service: UserWordsLearningService = UserWordsLearningService()
 daily_progress_manager: DailyStatisticsManager = DailyStatisticsManager()
@@ -283,7 +284,7 @@ async def admin_deleting_sentence_testing(message: Message, state: FSMContext):
 @admin_router.callback_query(F.data == AdminMenuButtons.USERS)
 async def admin_users(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
-    users = await user_manager.get_all_users()
+    users = await user_service.get_all_users()
     users_ranks_and_points = await user_progress_service.get_all_users_ranks_and_points(medals_rank=True)
     rank_info = f"""<pre>Рейтинг всех пользователей:\n
 [{'№'.center(6)}] [{'Баллы'.center(7)}] [{'Имя'.center(20)}]\n"""
@@ -328,7 +329,7 @@ async def admin_delete_user(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     data = await state.get_data()
     user_id = data.get('admin_user_id_management')
-    await user_manager.delete_user(user_id=user_id)
+    await user_service.delete_user(user_id=user_id)
     await callback.message.edit_text('Пользователь удалён',
                                      reply_markup=await keyboard_builder(1, AdminMenuButtons.MAIN_MENU,
                                                                          AdminMenuButtons.CLOSE))
@@ -340,7 +341,7 @@ async def admin_see_user_info(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     user_id = int(callback.data)
     await update_state_data(state, admin_user_id_management=user_id)
-    info = await user_manager.get_user_info_text(user_id)
+    info = await user_service.get_user_info_text(user_id)
     await callback.message.answer(info,
                                   reply_markup=await keyboard_builder(1,
                                                                       AdminMenuButtons.ADD_WORDS_TO_USER_LEARNING,
@@ -358,7 +359,7 @@ async def admin_see_user_info(callback: CallbackQuery, state: FSMContext):
 async def admin_add_words_to_user(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
     user_id = (await state.get_data()).get('admin_user_id_management')
-    user_full_name = (await user_manager.get_user(user_id=user_id)).get('full_name')
+    user_full_name = (await user_service.get_user(user_id=user_id)).get('full_name')
     await callback.message.edit_text(
         f"""Добавление слов пользователю <b><i>{user_full_name}</i></b>\n
 Введи слово и перевод к нему <b><i>в формате: \nСлово=+=Word или Слово|Word
@@ -374,7 +375,7 @@ async def admin_add_words_to_user(callback: CallbackQuery, state: FSMContext):
 async def admin_adding_words_to_user(message: Message, state: FSMContext):
     try:
         user_id = (await state.get_data()).get('admin_user_id_management')
-        user_full_name = (await user_manager.get_user(user_id=user_id)).get('full_name')
+        user_full_name = (await user_service.get_user(user_id=user_id)).get('full_name')
         lines = message.text.split('\n')
         count_exercises = len(lines)
         word_declension = get_word_declension(count=count_exercises, word='Слово')

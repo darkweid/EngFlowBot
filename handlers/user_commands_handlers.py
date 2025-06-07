@@ -5,14 +5,15 @@ from aiogram.fsm.state import default_state
 from aiogram.types import LinkPreviewOptions, Message
 
 from config_data.settings import settings
-from db import UserManager, DailyStatisticsManager
+from db import DailyStatisticsManager
 from keyboards import keyboard_builder
 from lexicon import BasicButtons, MainMenuButtons, MessageTexts
+from services.user import UserService
 from states import UserFSM
 from utils import send_message_to_admin
 
 user_commands_router: Router = Router()
-user_manager = UserManager()
+user_service: UserService = UserService()
 daily_stats_manager = DailyStatisticsManager()
 
 
@@ -29,10 +30,10 @@ async def process_start_command(message: Message, state: FSMContext):
     user_id = int(message.from_user.id)
     full_name = message.from_user.full_name
     tg_login = message.from_user.username
-    await user_manager.add_user(user_id, full_name, tg_login)
+    await user_service.add_user(user_id, full_name, tg_login)
     await message.answer(MessageTexts.WELCOME_NEW_USER.format(user_name=full_name,
-                                                                    owner_tg_link=settings.owner_tg_link,
-                                                                    owner_name=settings.owner_name),
+                                                              owner_tg_link=settings.owner_tg_link,
+                                                              owner_name=settings.owner_name),
                          link_preview_options=LinkPreviewOptions(is_disabled=True),
                          reply_markup=await keyboard_builder(1, set_tz_new_user=BasicButtons.TURN_ON_REMINDER))
     await message.answer(MessageTexts.WELCOME_EXISTING_USER,
@@ -54,7 +55,7 @@ async def process_start_command_existing_user(message: Message, state: FSMContex
     user_id = int(message.from_user.id)
     full_name = message.from_user.full_name
     tg_login = message.from_user.username
-    await user_manager.add_user(user_id, full_name, tg_login)
+    await user_service.add_user(user_id, full_name, tg_login)
     await message.answer(MessageTexts.WELCOME_EXISTING_USER,
                          reply_markup=await keyboard_builder(1, *[button for button in MainMenuButtons]))
     await state.set_state(UserFSM.default)
