@@ -1,16 +1,14 @@
 from aiogram import Bot
 from aiogram.exceptions import TelegramForbiddenError
 
-from db import UserManager, UserWordsLearningManager
 from keyboards import keyboard_builder
 from lexicon import BasicButtons, MessageTexts
 from loggers import get_logger
+from services.user import UserService
+from services.user_words_learning import UserWordsLearningService
 from .bot_init import get_bot_instance
 
 logger = get_logger(__name__)
-
-user_manager: UserManager = UserManager()
-user_words_manager: UserWordsLearningManager = UserWordsLearningManager()
 
 
 async def send_message_to_all_users(text: str):
@@ -21,9 +19,10 @@ async def send_message_to_all_users(text: str):
     - text (str): The message text to send.
     """
     bot: Bot = await get_bot_instance()
+    user_service: UserService = UserService()
     if bot is None:
         raise Exception('Bot instance is not available')
-    users = await user_manager.get_all_users()
+    users = await user_service.get_all_users()
     for user in users:
         user_id = user.get('user_id')
         try:
@@ -61,24 +60,25 @@ async def send_reminder_to_user(user_id: int):
     - user_id (int): The ID of the user.
     """
     bot: Bot = await get_bot_instance()
-    count_words_for_today = await user_words_manager.get_count_all_exercises_for_today_by_user(user_id=user_id)
-    # active_learning_count = await user_words_manager.get_count_active_learning_exercises(user_id=user_id)
+    user_words_learning_service: UserWordsLearningService = UserWordsLearningService()
+    count_words_for_today = await user_words_learning_service.get_count_all_exercises_for_today_by_user(user_id=user_id)
+    # active_learning_count = await user_words_learning_service.get_count_active_learning_exercises(user_id=user_id)
     try:
         if count_words_for_today > 0:
             word_form = get_word_declension(count_words_for_today)
-            await bot.send_message(user_id, text=MessageTexts.REMINDER_WORDS_TO_LEARN.value.format(word_form),
+            await bot.send_message(user_id, text=MessageTexts.REMINDER_WORDS_TO_LEARN.format(word_form),
                                    reply_markup=await keyboard_builder(1,
                                                                        learn_new_words=BasicButtons.LEARN_ADDED_WORDS)
                                    )
         # elif count_words_for_today == 0 and active_learning_count < 12:
         #     await bot.send_message(user_id,
-        #                            text=f'{MessageTexts.REMINDER.value}\n{MessageTexts.ADVICE_TO_ADD_MORE_WORDS.value}',
+        #                            text=f'{MessageTexts.REMINDER}\n{MessageTexts.ADVICE_TO_ADD_MORE_WORDS}',
         #                            reply_markup=await keyboard_builder(1,
         #                                                                BasicButtons.MAIN_MENU,
         #                                                                add_new_words=BasicButtons.ADD_WORDS,
         #                                                                args_go_first=False))
         # elif count_words_for_today == 0 and active_learning_count > 12:
-        #     await bot.send_message(user_id, text=MessageTexts.REMINDER.value,
+        #     await bot.send_message(user_id, text=MessageTexts.REMINDER,
         #                            reply_markup=await keyboard_builder(1, BasicButtons.MAIN_MENU))
     except TelegramForbiddenError as e:
         logger.error(f'Failed to send message to user {user_id}:\n{e}')

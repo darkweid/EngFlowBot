@@ -19,6 +19,7 @@ class Settings(BaseSettings):
 
     owner_name: str
     owner_tg_link: str
+    developer_tg_id: int
 
     def build_postgres_dsn(self) -> URL:
         return URL.create(

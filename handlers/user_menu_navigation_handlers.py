@@ -13,7 +13,7 @@ from keyboards import keyboard_builder
 user_navigation_router: Router = Router()
 
 
-@user_navigation_router.callback_query(F.data == BasicButtons.CLOSE.value)
+@user_navigation_router.callback_query(F.data == BasicButtons.CLOSE)
 @user_navigation_router.callback_query(F.data == 'close_message')
 async def close_message(callback: CallbackQuery):
     await callback.answer()
@@ -23,23 +23,27 @@ async def close_message(callback: CallbackQuery):
         logging.error(f"Failed to delete message: {e}")
 
 
-@user_navigation_router.callback_query((F.data == BasicButtons.MAIN_MENU.value), ~StateFilter(default_state))
-async def main_menu(callback: CallbackQuery, state: FSMContext):
+@user_navigation_router.callback_query((F.data == BasicButtons.MAIN_MENU), ~StateFilter(default_state))
+async def main_menu(callback: CallbackQuery,
+                    state: FSMContext,
+                    ):
     await callback.answer()
     try:
         await callback.message.delete()
     except TelegramBadRequest as e:
         logging.error(f"Failed to delete message: {e}")
-    await callback.message.answer(MessageTexts.WELCOME_EXISTING_USER.value,
-                                  reply_markup=await keyboard_builder(1, *[button.value for button in MainMenuButtons]))
+    await callback.message.answer(MessageTexts.WELCOME_EXISTING_USER,
+                                  reply_markup=await keyboard_builder(1, *[button for button in MainMenuButtons]))
     await state.set_state(TestingFSM.default)
 
 
-@user_navigation_router.callback_query(F.data == BasicButtons.BACK.value,
+@user_navigation_router.callback_query(F.data == BasicButtons.BACK,
                                        StateFilter(TestingFSM.selecting_section))
-async def main_menu_existing_user(callback: CallbackQuery, state: FSMContext):
+async def main_menu_existing_user(callback: CallbackQuery,
+                                  state: FSMContext,
+                                  ):
     await callback.answer()
-    await callback.message.edit_text(MessageTexts.WELCOME_EXISTING_USER.value,
+    await callback.message.edit_text(MessageTexts.WELCOME_EXISTING_USER,
                                      reply_markup=await keyboard_builder(1,
-                                                                         *[button.value for button in MainMenuButtons]))
+                                                                         *[button for button in MainMenuButtons]))
     await state.set_state(UserFSM.default)

@@ -1,12 +1,13 @@
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.jobstores.memory import MemoryJobStore
 from datetime import timedelta, timezone, datetime
-from apscheduler.triggers.date import DateTrigger
-from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
-from utils import send_reminder_to_user, send_message_to_all_users
-from db import UserManager
 
-user_manager = UserManager()
+from apscheduler.jobstores.memory import MemoryJobStore
+from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.date import DateTrigger
+
+from services.user import UserService
+from utils import send_reminder_to_user, send_message_to_all_users
+
 
 jobstores = {
     'reminders': MemoryJobStore(),
@@ -29,7 +30,9 @@ async def schedule_reminders():
     - Each user's reminder time and time zone are used to schedule the job.
     - The job sends a reminder message to the user at the specified time.
     """
-    users = await user_manager.get_all_users()
+    user_service: UserService = UserService()
+
+    users = await user_service.get_all_users()
     scheduler.remove_all_jobs(jobstore='reminders')
     for user in users:
         username = user.get('tg_login')

@@ -1,7 +1,7 @@
-from enum import Enum
-from config_data import settings
+from enum import StrEnum
 
-class MessageTexts(Enum):
+
+class MessageTexts(StrEnum):
     WELCOME_NEW_USER = """
 Привет, {user_name}\nЯ бот от <a href="{owner_tg_link}">{owner_name}</a>😊
 Я помогаю:
@@ -102,14 +102,14 @@ on Monday morning
 on Friday evening"""
 
 
-class MainMenuButtons(Enum):
+class MainMenuButtons(StrEnum):
     NEW_WORDS = 'Изучение слов'
     TESTING = 'Повторение грамматики'
     # IRREGULAR_VERBS = 'Изучение неправильных глаголов'
     # TRANSLATING_SENTENCES = 'Предложения для перевода'
 
 
-class BasicButtons(Enum):
+class BasicButtons(StrEnum):
     YES = '✅ Да'
     NO = '❌ Нет'
     READY = 'I am ready!'
@@ -143,7 +143,7 @@ class BasicButtons(Enum):
     I_DONT_KNOW = 'Не знаю'
 
 
-class TestingSections(Enum):
+class TestingSections(StrEnum):
     TENSES = 'Tenses'
     CONSTRUCTIONS = 'Constructions'
     PHRASES_AND_WORDS = 'Phrases & words'
@@ -152,7 +152,7 @@ class TestingSections(Enum):
     CONDITIONALS = 'Conditionals'
 
 
-class TensesSections(Enum):
+class TensesSections(StrEnum):
     PRESENT_SIMPLE = 'Present Simple'
     PRESENT_CONTINUOUS = 'Present Continuous'
     PS_VS_PC = 'Present Simple VS Present Continuous'
@@ -164,7 +164,7 @@ class TensesSections(Enum):
     PRESENT_PERFECT_SIMPLE_VS_PRESENT_PERFECT_CONT = 'Present Perfect Simple VS Present Perfect Continuous'
 
 
-class ConstructionsSections(Enum):
+class ConstructionsSections(StrEnum):
     TO_BE_GOING_TO = 'to be going to'
     WILL_VS_BE_GOING_TO = 'will VS be going to'
     WAS_GOING_TO = 'was going to'
@@ -175,7 +175,7 @@ class ConstructionsSections(Enum):
     TAG_QUESTIONS = 'tag questions'
 
 
-class PhrasesAndWordsSections(Enum):
+class PhrasesAndWordsSections(StrEnum):
     HOW_MUCH_HOW_MANY = 'how much / how many'
     LITTLE_VS_FEW = 'little VS few'
     SOME_VS_ANY = 'some VS any'
@@ -186,14 +186,14 @@ class PhrasesAndWordsSections(Enum):
     ARTICLES = 'articles'
 
 
-class PrepositionsSections(Enum):
+class PrepositionsSections(StrEnum):
     PREPOSITIONS_OF_THE_TIME = 'Prepositions of time'
     PREPOSITIONS_OF_PLACE = 'Prepositions of place'
     PREPOSITIONS_OF_AGENT_OR_INSTRUMENT = 'Prepositions of agent or instrument'
     PREPOSITIONS_OF_CAUSE_OR_REASON = 'Prepositions of Cause or Reason'
 
 
-class ModalVerbsSections(Enum):
+class ModalVerbsSections(StrEnum):
     CAN_VS_COULD = 'can VS could'
     CANT_VS_COULDNT = 'can’t VS couldn’t'
     MUST_VS_SHOULD = 'must VS should'
@@ -201,7 +201,7 @@ class ModalVerbsSections(Enum):
     CAN_VS_MAY = 'can VS may'
 
 
-class ConditionalsSections(Enum):
+class ConditionalsSections(StrEnum):
     ZERO_COND = 'zero cond'
     FIRST_COND = 'first cond'
     SECOND_COND = 'second cond'
@@ -219,26 +219,26 @@ testing_section_mapping = {
 }
 
 
-class NewWordsSections(Enum):
+class NewWordsSections(StrEnum):
     WORDS_BY_TOPIC = 'Words by topic'
     BASIC_VERBS = 'Basic verbs'
     ADJECTIVES = 'Adjectives & Descriptions'
     PHRASAL_VERBS = 'Phrasal verbs'
 
 
-class Idioms(Enum):
+class Idioms(StrEnum):
     BUSINESS_IDIOMS = 'Business Idioms'
     FOOD_IDIOMS = 'Food Idioms'
     SPORTS_IDIOMS = 'Sports Idioms'
 
 
-class PhrasalVerbs(Enum):
+class PhrasalVerbs(StrEnum):
     TRAVEL_PHRASAL_VERBS = 'Travel Phrasal Verbs'
     WORK_PHRASAL_VERBS = 'Work Phrasal Verbs'
     RELATIONSHIP_PHRASAL_VERBS = 'Relationship Phrasal Verbs'
 
 
-class AdminMenuButtons(Enum):
+class AdminMenuButtons(StrEnum):
     YES = 'Да'
     NO = 'Нет'
     COMMIT = 'Отправить'
@@ -281,6 +281,11 @@ class AdminMenuButtons(Enum):
     BROADCAST = 'Рассылка пользователям'
     DEL_BROADCASTS = 'Удалить все запланированные рассылки'
     ADD_BROADCAST = 'Запланировать рассылку'
+
+
+class ServiceMessages(StrEnum):
+    BOT_ON = '✅ Бот запущен'
+    BOT_OFF = '❌ Бот остановлен'
 
 
 list_right_answers = [
