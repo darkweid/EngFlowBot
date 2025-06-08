@@ -283,6 +283,11 @@ class AdminMenuButtons(StrEnum):
     ADD_BROADCAST = 'Запланировать рассылку'
 
 
+class ServiceMessages(StrEnum):
+    BOT_ON = '✅ Бот запущен'
+    BOT_OFF = '❌ Бот остановлен'
+
+
 list_right_answers = [
     'You are right!', 'Awesome!', 'Great!', 'Good job',
     'You should be very proud of yourself', 'Oh, nice!', 'Fantastic!',

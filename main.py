@@ -10,6 +10,7 @@ init_async_session()
 
 from handlers import *
 from keyboards.set_menu import set_main_menu
+from lexicon.lexicon_ru import ServiceMessages
 from loggers import get_logger
 from utils import send_message_to_admin, scheduler, schedule_reminders, init_bot_instance, get_bot_instance
 
