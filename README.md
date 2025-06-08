@@ -1,107 +1,179 @@
 
-# [Telegram Bot](https://t.me/english_prus_bot) для изучения английского языка      
+## About EngFlowBot
+**EngFlowBot** is an open-source Telegram bot that helps Russian-speaking learners master English through spaced-repetition vocabulary drills and micro-grammar tests.
 
-## Описание
-Этот Telegram бот создан для русскоговорящих пользователей, желающих улучшить свои знания английского языка. Бот включает мощные инструменты для учеников и администратора (учителя), что делает процесс обучения эффективным и организованным.
-
-### Уникальные особенности:
-- **Интервальное повторение:** Адаптивное интервальное повторение помогает запоминать слова быстрее.
-- **Грамматические тесты:** Регулярные тесты помогают закрепить грамматические знания.
-- **Напоминания:** Пользователи могут устанавливать персонализированные напоминания для занятий.
-- **Поддержка администратора:** Учителя могут управлять процессом обучения через административную панель и получать уведомления о ключевых событиях.
-- **Режим Hard Mode для изучения слов:** Экспериментальный режим, добавленный для более сложного изучения слов, что делает обучение более интенсивным.
-
-## Основные функции для учеников
-- **Изучение слов с интервальным повторением.**
-- **Youglish ссылки:** Встроенный построитель ссылок для Youglish позволяет пользователям легко просматривать произношение слов в реальном контексте.
-- **Тесты по грамматике.**
-- **Напоминания о занятиях.**
-- **Статистика по изучению слов:** Возможность отслеживать прогресс по каждой теме:
-  - Для изучения сегодня.
-  - Всего слов в теме.
-  - В активном изучении.
-  - Изучено.
-  - % правильных ответов.
-
-## Функции для администратора/учителя
-Административная панель предоставляет следующие возможности:
-- **Добавление сетов слов:** Создание наборов слов для учеников.
-- **Добавление тестов по грамматическим темам.**
-- **Индивидуальная настройка:** Добавление и удаление слов для отдельных учеников.
-- **Просмотр статистики учеников:** Прогресс учеников доступен в виде графиков.
-- **Общая статистика по боту:** Отчеты по активности пользователей за различные периоды.
-- **Детальная информация по каждому ученику:** Имя, Telegram username, ID, количество баллов, дата регистрации, время напоминаний, часовой пояс.
-- **Удаление пользователей.**
-- **Планирование рассылок.**
-- **Уведомления:**
-  - При запуске и остановке бота.
-  - О регистрации новых пользователей.
-  - О добавлении учеником новых слов.
-  - О прохождении учеником упражнений по грамматике с отображением статистики.
-
-## Планы по улучшению
-- [ ] Сделать наиболее изученные слова более приоритетными в изучении.
-
-## Технологический стек
-Бот построен на современных технологиях:
-- **Python 3.11 slim**
-- **Aiogram 3.13.1** — асинхронная работа с Telegram API.
-- **Aiosqlite 0.20.0** и **Asyncpg 0.29.0** — работа с базами данных (SQLite и PostgreSQL).
-- **Redis 5.1.1** — хранение состояний и кэш.
-- **APScheduler 3.10.4** — планирование задач.
-- **Environs 11.0.0** — управление конфиденциальной информацией.
+| |                                                        |
+|---|--------------------------------------------------------|
+| **Stack** | Python 3.11 · Aiogram 3.13 · PostgreSQL 15 · Redis 5   |
+| **License** | MIT                                                    |
+| **Status** | ![CI](https://img.shields.io/badge/build-passing-brightgreen) |
 
 ---
 
-  # Telegram Bot for Learning English
-[Try](https://t.me/english_prus_bot)
-## Description
-This Telegram bot is designed for Russian-speaking users who want to improve their English language skills. The bot provides powerful tools for both students and administrators (teachers), making the learning process effective and organized.
+### Learner highlights
+* **📚 Spaced repetition** — adaptive intervals, optional *Hard mode*  
+* **🗣 Pronunciation links** — one-tap jump to Youglish examples  
+* **📝 Micro grammar tests** — instant feedback & per-topic progress  
+* **⏰ Personal reminders** — cron-like notifications in local time  
+* **📊 Stats dashboard** — today / active / learned / accuracy %
 
-### What makes this bot unique?
-- **Spaced repetition:** Adaptive spaced repetition helps users memorize words faster.
-- **Grammar tests:** Regular tests help reinforce grammar knowledge.
-- **Reminders:** Users can set personalized reminders to study.
-- **Administrator support:** Teachers can manage the learning process through an admin panel and receive notifications about key events.
-- **Hard Mode for Vocabulary Learning:** An experimental mode for a more challenging word study experience.
+### Teacher / admin toolkit
+* CRUD word sets & grammar tests directly in chat  
+* Per-student dashboards & deletion  
+* Global usage metrics (daily new words / tests / users)  
+* Broadcast scheduler  
+* Instant alerts (bot start/stop, sign-ups, word additions, test results)
 
-## Key Features for Students
-- **Word learning with spaced repetition.**
-- **Youglish Links:** Built-in link builder to Youglish allows users to view word pronunciation in real-life context.
-- **Grammar tests.**
-- **Study reminders.**
-- **Word learning statistics:** Users can track their progress for each topic:
-  - Words to study today.
-  - Total words in the topic.
-  - Actively learning.
-  - Words learned.
-  - % correct answers.
-  
+---
 
-## Features for Administrator/Teacher/Tutor
-The admin panel provides the following features:
-- **Adding word sets:** Create word sets for students to learn.
-- **Adding grammar tests.**
-- **Individual customization:** Add and remove specific words for individual students.
-- **View students statistics:** Track student progress via charts.
-- **General bot usage statistics:** Reports on user activity over various time periods.
-- **Detailed user information:** Name, Telegram username, ID, score points (awarded for completing tasks), registration date, reminder times, and time zone.
-- **User deletion.**
-- **Planning broadcasts:** Send scheduled messages to users.
-- **Notifications:**
-  - Bot start/stop notifications.
-  - New user registration notifications.
-  - Notifications when a student adds new words for learning.
-  - Notifications with statistics when a student completes a grammar exercise.
+### Architecture at a glance
+```text
+┌─────────────────────┐
+│ Telegram API        │
+└──────────┬──────────┘
+           │
+   aiogram.Dispatcher  ←  update middlewares
+           │
+┌──────────▼──────────┐
+│  Handlers layer     │  ↔ DI via ServicesMiddleware
+└──────────┬──────────┘
+           │
+┌──────────▼──────────┐
+│  Services layer     │  business logic, pure async
+└──────────┬──────────┘
+           │
+┌──────────▼──────────┐
+│ Repositories layer  │  SQLAlchemy 2 (async)
+└──────────┬──────────┘
+           │
+   PostgreSQL / Redis
 
-## Planned Improvements
-- [ ] Make the most learned words a priority in the study process.
+```
+---
 
-## Tech Stack
-This bot is built using modern technologies:
-- **Python 3.11 slim**
-- **Aiogram 3.13.1** — asynchronous Telegram API.
-- **Aiosqlite 0.20.0** and **Asyncpg 0.29.0** — asynchronous databases (SQLite and PostgreSQL).
-- **Redis 5.1.1** — state storage and caching.
-- **APScheduler 3.10.4** — scheduling tasks like sending notifications.
-- **Environs 11.0.0** — secure environment variable management.
+### Cloning the Repository
+
+1. Open your terminal.
+2. Clone the repository:
+
+   ```bash
+   git clone https://github.com/darkweid/EngFlowBot.git
+   cd EngFlowBot
+   ```
+
+3. Copy the example environment file to create your own:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+4. Open the `.env` file in your favorite editor and configure the required environment variables.
+
+### Running the Project
+
+The project uses Docker Compose to orchestrate all services, including the Bot app, PostgreSQL, Redis. Use the provided Makefile to simplify the workflow.
+
+#### Building & Starting the Containers
+
+By following these instructions and using the provided Makefile, you can easily deploy and manage the entire project stack with a few simple commands. Happy coding!
+
+To build the Docker images (if needed) and run all containers in detached mode, use:
+
+```bash
+make run
+```
+
+This command will:
+- Build the images as necessary.
+- Start all services defined in the `docker-compose.yml` file.
+
+#### Viewing Logs
+
+To view logs for all services:
+
+```bash
+make logs
+```
+
+To view logs for a specific service, such as the Bot app:
+
+```bash
+make logs-app
+```
+
+
+#### Stopping and Cleaning Up
+
+- To stop all running containers:
+
+  ```bash
+  make down
+  ```
+
+- To remove containers, networks, volumes, and local images (and clean up orphaned containers):
+
+  ```bash
+  make clean
+  ```
+
+- To restart containers:
+
+  ```bash
+  make restart
+  ```
+---
+
+### Error handling
+
+#### 1. Validation layer (ValueError)
+	•	User message: “Wrong format.”
+	•	Logs: level INFO with the error text.
+	•	Side effects: none.
+
+#### 2. Database layer (SQLAlchemyError)
+	•	User message: “Database error. Please try again later.”
+	•	Logs: full traceback at level ERROR.
+	•	Alert: the traceback is forwarded to the developer chat via send_message_to_developer().
+
+#### 3. Telegram rate-limit (TelegramRetryAfter)
+	•	Action: bot sleeps for retry_after seconds, then re-runs the handler.
+	•	Logs: level WARNING noting the cooldown.
+
+#### 4. User blocked the bot (TelegramForbiddenError)
+	•	User message: none (they have blocked the bot).
+	•	Logs: level WARNING with the user ID.
+
+#### 5. Bad request / impossible action (TelegramBadRequest)
+	•	User message: “This action can’t be performed.”
+	•	Logs: level WARNING containing Telegram’s error text.
+
+#### 6. Other Telegram API errors (TelegramAPIError, generic)
+	•	User message: “Telegram error. Please try again later.”
+	•	Logs: level ERROR with the API error text.
+
+#### 7. Unknown exceptions (Exception fallback)
+	•	User message: “An unexpected error occurred. We’re already on it.”
+	•	Logs: full traceback at level ERROR.
+	•	Alert: traceback is sent to the developer chat.
+
+#### 8. Graceful shutdown (asyncio.CancelledError)
+	•	Action: middleware re-raises the exception so the event loop can shut down cleanly.
+	•	Logs: not treated as an error.
+
+
+
+Registration order
+```python
+
+dp.update.middleware.register(UserActionLoggingMiddleware())   # first
+dp.update.middleware.register(ServicesMiddleware())            # business DI
+dp.update.middleware.register(ErrorHandlingMiddleware())       # last
+```
+
+---
+
+### Road-map
+
+	•	Native inline audio (replace Youglish)
+	•	Prometheus + Grafana dashboard
+	•	Mini-webapp (TWA) for content editing
