@@ -6,6 +6,7 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
+from sqlalchemy.exc import SQLAlchemyError
 
 from config_data.settings import settings
 from keyboards import keyboard_builder, keyboard_builder_users
@@ -28,6 +29,7 @@ admin_router: Router = Router()
 async def admin_command(message: Message,
                         state: FSMContext,
                         ):
+    raise Exception("sadsas")
     if message.from_user.id in settings.admin_ids:
         await message.answer('🔘 Привет, что будем делать? 🔘',
                              reply_markup=await keyboard_builder(1, AdminMenuButtons.EXERCISES,

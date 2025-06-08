@@ -24,6 +24,7 @@ from handlers import (
 from keyboards.set_menu import set_main_menu
 from lexicon.lexicon_ru import ServiceMessages
 from loggers import get_logger
+from middlewares.errors import ErrorHandlingMiddleware
 from middlewares.services import ServicesMiddleware
 from utils import (
     send_message_to_admin,
@@ -42,8 +43,8 @@ async def startup() -> tuple[Bot, Dispatcher]:
     bot: Bot = await get_bot_instance()
     dp = Dispatcher(storage=storage)
 
-    dp.message.middleware.register(ServicesMiddleware())
-    dp.callback_query.middleware.register(ServicesMiddleware())
+    dp.update.middleware.register(ServicesMiddleware())
+    dp.update.middleware.register(ErrorHandlingMiddleware())
     dp.include_routers(
         user_commands_router,
         admin_router,

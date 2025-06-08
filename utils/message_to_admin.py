@@ -28,3 +28,19 @@ async def send_message_to_admin(text: str, to_super_admin=False):
                 await bot.send_message(admin, text=text)
         except Exception as e:
             logger.error(f'Unsuccessful attempt to send message to admin{admin}: {e}')
+
+
+async def send_message_to_developer(text: str):
+    """
+    Send a message to the developer of the bot.
+
+    Parameters:
+    - text (str): The message text to send.
+    """
+
+    bot: Bot = await get_bot_instance()
+
+    try:
+        await bot.send_message(settings.developer_tg_id, text=text)
+    except Exception as e:
+        logger.error(f'Unsuccessful attempt to send message to developer: {e}')
