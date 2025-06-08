@@ -29,7 +29,6 @@ admin_router: Router = Router()
 async def admin_command(message: Message,
                         state: FSMContext,
                         ):
-    raise Exception("sadsas")
     if message.from_user.id in settings.admin_ids:
         await message.answer('🔘 Привет, что будем делать? 🔘',
                              reply_markup=await keyboard_builder(1, AdminMenuButtons.EXERCISES,
