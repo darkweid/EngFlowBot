@@ -60,7 +60,7 @@ migration:
 # Alembic: Apply migrations
 .PHONY: migrate
 migrate:
-	$(DOCKER_COMPOSE_EXEC) $(APP_CONTAINER) alembic upgrade head
+	$(DOCKER_COMPOSE_EXEC) -T $(APP_CONTAINER) alembic upgrade head
 
 # Execute a bash shell inside the app container
 .PHONY: shell
