@@ -1,7 +1,6 @@
-# services/user_service.py
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, time as tm
 
 from db.models import User
 from db.repositories.user import UserRepository
@@ -47,7 +46,7 @@ class UserService:
     async def set_timezone(self, user_id: int, timezone: str | None) -> None:
         await self._repo.set_timezone(user_id, timezone)
 
-    async def set_reminder_time(self, user_id: int, time: str | None) -> None:
+    async def set_reminder_time(self, user_id: int, time: tm | None) -> None:
         await self._repo.set_reminder_time(user_id, time)
 
     async def get_all_users(self) -> tuple[dict, ...]:

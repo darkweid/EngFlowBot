@@ -8,7 +8,6 @@ from apscheduler.triggers.date import DateTrigger
 from services.user import UserService
 from utils import send_reminder_to_user, send_message_to_all_users
 
-user_service: UserService = UserService()
 
 jobstores = {
     'reminders': MemoryJobStore(),
@@ -31,6 +30,8 @@ async def schedule_reminders():
     - Each user's reminder time and time zone are used to schedule the job.
     - The job sends a reminder message to the user at the specified time.
     """
+    user_service: UserService = UserService()
+
     users = await user_service.get_all_users()
     scheduler.remove_all_jobs(jobstore='reminders')
     for user in users:

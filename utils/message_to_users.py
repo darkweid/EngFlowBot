@@ -10,9 +10,6 @@ from .bot_init import get_bot_instance
 
 logger = get_logger(__name__)
 
-user_service: UserService = UserService()
-user_words_learning_service: UserWordsLearningService = UserWordsLearningService()
-
 
 async def send_message_to_all_users(text: str):
     """
@@ -22,6 +19,7 @@ async def send_message_to_all_users(text: str):
     - text (str): The message text to send.
     """
     bot: Bot = await get_bot_instance()
+    user_service: UserService = UserService()
     if bot is None:
         raise Exception('Bot instance is not available')
     users = await user_service.get_all_users()
@@ -62,6 +60,7 @@ async def send_reminder_to_user(user_id: int):
     - user_id (int): The ID of the user.
     """
     bot: Bot = await get_bot_instance()
+    user_words_learning_service: UserWordsLearningService = UserWordsLearningService()
     count_words_for_today = await user_words_learning_service.get_count_all_exercises_for_today_by_user(user_id=user_id)
     # active_learning_count = await user_words_learning_service.get_count_active_learning_exercises(user_id=user_id)
     try:

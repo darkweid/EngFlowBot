@@ -8,7 +8,6 @@ from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from db import DailyStatisticsManager
 from keyboards import keyboard_builder
 from lexicon import (MessageTexts, BasicButtons, MainMenuButtons, list_right_answers,
                      PrepositionsSections)
@@ -19,10 +18,6 @@ from states import TestingFSM
 from utils import send_message_to_admin, update_state_data
 
 user_testing_router: Router = Router()
-
-testing_service: TestingService = TestingService()
-user_progress_service: UserProgressService = UserProgressService()
-daily_statistics_service:DailyStatisticsService = DailyStatisticsService()
 
 
 @user_testing_router.callback_query((F.data == 'rules_testing'))
@@ -41,8 +36,11 @@ async def close_rules_testing(callback: CallbackQuery):
         logging.error(f"Failed to delete message: {e}")
 
 
-@user_testing_router.callback_query((F.data == MainMenuButtons.TESTING))  # выбор раздела для прохождения теста
-async def start_testing_with_rules(callback: CallbackQuery, state: FSMContext):
+@user_testing_router.callback_query((F.data == MainMenuButtons.TESTING))  # choose section for testing
+async def start_testing_with_rules(callback: CallbackQuery,
+                                   state: FSMContext,
+                                   testing_service: TestingService,
+                                   ):
     await callback.answer()
     await callback.message.edit_text(MessageTexts.TESTING_HELLO,
                                      reply_markup=await keyboard_builder(1, rules_testing=BasicButtons.RULES,
@@ -58,7 +56,10 @@ async def start_testing_with_rules(callback: CallbackQuery, state: FSMContext):
 @user_testing_router.callback_query((F.data == BasicButtons.BACK),
                                     StateFilter(TestingFSM.selecting_subsection))
 @user_testing_router.callback_query((F.data == 'choose_other_section_training'))
-async def start_testing(callback: CallbackQuery, state: FSMContext):
+async def start_testing(callback: CallbackQuery,
+                        state: FSMContext,
+                        testing_service: TestingService,
+                        ):
     await callback.answer()
     sections = await testing_service.get_section_names()
     await callback.message.edit_text(MessageTexts.CHOOSE_SECTION,
@@ -67,8 +68,11 @@ async def start_testing(callback: CallbackQuery, state: FSMContext):
     await state.set_state(TestingFSM.selecting_section)
 
 
-@user_testing_router.callback_query(StateFilter(TestingFSM.selecting_section))  # выбор подраздела для прохождения теста
-async def choosing_section_testing(callback: CallbackQuery, state: FSMContext):
+@user_testing_router.callback_query(StateFilter(TestingFSM.selecting_section))  # choose subsection for testing
+async def choosing_section_testing(callback: CallbackQuery,
+                                   state: FSMContext,
+                                   testing_service: TestingService,
+                                   ):
     section = callback.data
     await callback.answer()
     subsections = await testing_service.get_subsection_names(section=section)
@@ -81,10 +85,9 @@ async def choosing_section_testing(callback: CallbackQuery, state: FSMContext):
 
 
 @user_testing_router.callback_query(
-    StateFilter(TestingFSM.selecting_subsection))  # подраздел выбран, получен в callback
+    StateFilter(TestingFSM.selecting_subsection))  # subsection chosen, got in callback
 async def choosing_subsection_testing(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
-    data = await state.get_data()
     subsection = callback.data
     additional_rules = ''
     if subsection == PrepositionsSections.PREPOSITIONS_OF_THE_TIME:
@@ -98,7 +101,12 @@ Are you ready?""", reply_markup=await keyboard_builder(1, BasicButtons.MAIN_MENU
 
 
 @user_testing_router.callback_query((F.data == 'ready_for_test'))
-async def chose_subsection_testing(callback: CallbackQuery, state: FSMContext, prev_message_delete: bool = True):
+async def chose_subsection_testing(callback: CallbackQuery,
+                                   state: FSMContext,
+                                   testing_service: TestingService,
+                                   user_progress_service: UserProgressService,
+                                   prev_message_delete: bool = True,
+                                   ):
     await callback.answer()
     if prev_message_delete:
         try:
@@ -130,8 +138,13 @@ async def chose_subsection_testing(callback: CallbackQuery, state: FSMContext, p
     await update_state_data(state, current_test=test, current_answer=answer.strip(), current_id=id_exercise)
 
 
-@user_testing_router.message(StateFilter(TestingFSM.in_process))  # В процессе тестирования
-async def in_process_testing(message: Message, state: FSMContext):
+@user_testing_router.message(StateFilter(TestingFSM.in_process))  # in testing process
+async def in_process_testing(message: Message,
+                             state: FSMContext,
+                             testing_service: TestingService,
+                             user_progress_service: UserProgressService,
+                             daily_statistics_service: DailyStatisticsService,
+                             ):
     await daily_statistics_service.update('testing_exercises')
     data = await state.get_data()
     section, subsection, exercise_id, user_id = data.get('section'), data.get('subsection'), data.get(
@@ -188,20 +201,28 @@ async def start_again_testing(callback: CallbackQuery):
 
 
 @user_testing_router.callback_query((F.data == 'sure_start_again_test'))
-async def start_again_testing(callback: CallbackQuery, state: FSMContext):
+async def start_again_testing(callback: CallbackQuery,
+                              state: FSMContext,
+                              user_progress_service: UserProgressService,
+                              testing_service: TestingService,
+                              ):
     await callback.answer()
     data = await state.get_data()
     subsection, section, user_id = data.get('subsection'), data.get('section'), callback.from_user.id
     await user_progress_service.delete_progress_by_subsection(user_id=user_id, section=section, subsection=subsection)
     await callback.message.edit_text(f'Прогресс по тесту {section} – {subsection} сброшен')
-    await chose_subsection_testing(callback, state, prev_message_delete=False)
+    await chose_subsection_testing(callback, state, testing_service, user_progress_service, prev_message_delete=False)
 
 
-@user_testing_router.callback_query((F.data == 'see_answer_testing'))  # Подсказка в тестировании
-async def see_answer_testing(callback: CallbackQuery, state: FSMContext):
+@user_testing_router.callback_query((F.data == 'see_answer_testing'))  # clue in testing
+async def see_answer_testing(callback: CallbackQuery,
+                             state: FSMContext,
+                             user_progress_service: UserProgressService,
+                             testing_service: TestingService,
+                             ):
     await callback.answer()
     data = await state.get_data()
     answer = data.get('current_answer')
     await callback.message.edit_text(f'Правильный ответ: {answer.capitalize()}')
     await asyncio.sleep(3)
-    await chose_subsection_testing(callback, state, prev_message_delete=False)
+    await chose_subsection_testing(callback, state, testing_service, user_progress_service, prev_message_delete=False)

@@ -131,7 +131,7 @@ class UserWordsLearningService:
         if success:
             await self._user_words_learning_repo.update_user_points(user_id, +1)
             success_value += 1
-            next_review_date = await calculate_next_review_date(
+            next_review_date = calculate_next_review_date(
                 success_attempts=success_value, total_attempts=attempts
             )
         else:

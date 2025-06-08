@@ -13,11 +13,11 @@ from states import UserFSM
 from utils import time_zones, schedule_reminders
 
 user_reminder_router: Router = Router()
-user_service: UserService = UserService()
 
 
 @user_reminder_router.message(Command(commands=["reminder"]), ~StateFilter(default_state))
-async def reminder_command(message: Message):
+async def reminder_command(message: Message,
+                           user_service: UserService, ):
     user_id = message.from_user.id
     info = await user_service.get_user(user_id)
     reminder_time = info.get('reminder_time')
@@ -46,7 +46,8 @@ async def reminder_command(message: Message):
 
 @user_reminder_router.callback_query(F.data == BasicButtons.CHANGE_TIME_ZONE)
 @user_reminder_router.callback_query(F.data == 'set_tz_new_user')
-async def choose_timezone(callback: CallbackQuery):
+async def choose_timezone(callback: CallbackQuery,
+                          ):
     await callback.answer()
     await callback.message.answer(MessageTexts.CHOOSE_TIMEZONE,
                                   reply_markup=await keyboard_builder(4, BasicButtons.CLOSE, args_go_first=False,
@@ -54,7 +55,9 @@ async def choose_timezone(callback: CallbackQuery):
 
 
 @user_reminder_router.callback_query(F.data.startswith('tz_UTC'))
-async def set_timezone(callback: CallbackQuery):
+async def set_timezone(callback: CallbackQuery,
+                       user_service: UserService,
+                       ):
     await callback.answer()
     await callback.message.edit_text(f"""Установлен часовой пояс {time_zones.get(callback.data)}
 Теперь ты можешь установить время напоминаний""",
@@ -65,7 +68,9 @@ async def set_timezone(callback: CallbackQuery):
 
 
 @user_reminder_router.callback_query(F.data == BasicButtons.CHANGE_REMINDER_TIME)
-async def set_reminder(callback: CallbackQuery, state: FSMContext):
+async def set_reminder(callback: CallbackQuery,
+                       state: FSMContext,
+                       ):
     await callback.answer()
     await callback.message.answer(f"""В какое время тебе напоминать заниматься?
 Введи время в формате <b>HH:MM</b>
@@ -74,7 +79,9 @@ async def set_reminder(callback: CallbackQuery, state: FSMContext):
 
 
 @user_reminder_router.callback_query(F.data == BasicButtons.TURN_OFF_REMINDER)
-async def turn_off_reminder(callback: CallbackQuery):
+async def turn_off_reminder(callback: CallbackQuery,
+                            user_service: UserService,
+                            ):
     await callback.answer()
     await user_service.set_reminder_time(user_id=callback.from_user.id, time=None)
     await schedule_reminders()
@@ -84,13 +91,15 @@ async def turn_off_reminder(callback: CallbackQuery):
 
 
 @user_reminder_router.message(StateFilter(UserFSM.set_reminder_time))
-async def set_reminder_time(message: Message):
+async def set_reminder_time(message: Message,
+                            user_service: UserService,
+                            ):
     try:
         time = datetime.strptime(message.text, "%H:%M").time()
         await user_service.set_reminder_time(user_id=message.from_user.id, time=time)
         await schedule_reminders()
         await message.delete()
         await message.answer(f'Отлично, буду напоминать тебе заниматься каждый день в {time.strftime("%H:%M")}')
-    except Exception as e:
+    except ValueError:
         await message.delete()
         await message.answer(f'\"{message.text}\" не соответствует формату HH:MM')

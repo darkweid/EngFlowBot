@@ -13,10 +13,10 @@ def calculate_next_interval(success_attempts, success_rate):
 
     standard_interval = base_interval * (growth_factor ** success_attempts)
 
-    # Коэффициент адаптации
-    if success_rate >= 0.75:  # высокий успех, увеличиваем интервал
+    # coefficient of adaptation
+    if success_rate >= 0.75:  # high success, increase interval
         adjustment_factor = 1 + (success_rate - 0.75) * 2
-    elif success_rate < 0.75:  # низкий успех, уменьшаем интервал
+    elif success_rate < 0.75:  # low success, decrease interval
         adjustment_factor = 1 - (0.75 - success_rate) * 2
     else:
         adjustment_factor = 1
