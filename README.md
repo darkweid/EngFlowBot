@@ -165,10 +165,43 @@ make logs-app
 Registration order
 ```python
 
-dp.update.middleware.register(UserActionLoggingMiddleware())   # first
 dp.update.middleware.register(ServicesMiddleware())            # business DI
 dp.update.middleware.register(ErrorHandlingMiddleware())       # last
 ```
+
+---
+
+### CI / CD guide — GitHub Actions → SSH deploy
+
+Below are the steps you need to follow in order to ship every push to main straight to your VPS.
+
+#### 1 · Prepare the server
+
+#### On the VPS
+```bash
+sudo adduser engbot --disabled-password
+sudo usermod -aG docker engbot               
+sudo mkdir -p /srv/engflowbot
+sudo chown engbot:engbot /srv/engflowbot
+```
+- Generate an SSH key pair on your workstation (or in GH Secrets UI) and put the public half in ~engbot/.ssh/authorized_keys.
+
+
+
+#### 2 · Create repository secrets
+
+- SSH_PRIVATE_KEY	– Private part of the deploy key (multi-line, keep -----BEGIN …-----).
+- SERVER_IP – Public IP or DNS of the VPS.
+- SSH_USER – The Linux user that owns /srv/engflowbot (e.g. engbot).
+
+
+#### 3 · Push & watch
+	1.	git add . && git commit -m "feat: add super cool feature"
+	2.	git push origin main
+	3.	GitHub → Actions tab → Deploy job should turn green.
+The bot restarts on your VPS automatically.
+
+That’s it—full zero-downtime CI/CD with less than 50 lines of YAML.
 
 ---
 
