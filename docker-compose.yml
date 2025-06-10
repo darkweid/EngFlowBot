@@ -19,7 +19,10 @@ services:
     image: "redis:latest"
     restart: "unless-stopped"
     healthcheck:
-      test: [ "CMD", "redis-cli","ping" ]
+      test: ["CMD","redis-cli","ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     volumes:
       - "redis_data:/data"
 
@@ -31,10 +34,11 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_DB: ${POSTGRES_DB}
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 3s
       retries: 5
+      start_period: 3s
     ports:
       - ${POSTGRES_PORT}:5432
     volumes:
