@@ -32,17 +32,8 @@ jobs:
       - name: Compile Python modules
         run: |
           python -m compileall \
-            main.py \
-            config_data \
-            db \
-            handlers \
-            keyboards \
-            lexicon \
-            loggers \
-            middlewares \
-            services \
-            states \
-            utils
+            bot \
+            tests
 
       - name: Check migration HEADs
         run: |

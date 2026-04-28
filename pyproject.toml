@@ -12,26 +12,17 @@ extend-ignore = ["E501"]
 
 [tool.ruff.lint.isort]
 known-first-party = [
-    "config_data",
-    "db",
-    "handlers",
-    "keyboards",
-    "lexicon",
-    "loggers",
-    "middlewares",
-    "services",
-    "states",
-    "utils",
+    "bot",
 ]
 combine-as-imports = true
 force-sort-within-sections = true
 
 [tool.ruff.lint.per-file-ignores]
 "**/__init__.py" = ["F401"]
-"handlers/admin_handlers.py" = ["F811"]
-"handlers/user_new_words_handlers.py" = ["F811", "F841"]
-"handlers/user_testing_handlers.py" = ["F811"]
-"keyboards/keyboards.py" = ["F403", "F405"]
+"bot/handlers/admin_handlers.py" = ["F811"]
+"bot/handlers/user_new_words_handlers.py" = ["F811", "F841"]
+"bot/handlers/user_testing_handlers.py" = ["F811"]
+"bot/keyboards/keyboards.py" = ["F403", "F405"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

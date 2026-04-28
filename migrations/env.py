@@ -7,8 +7,8 @@ from sqlalchemy import MetaData
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine
 
-from config_data.settings import settings
-from db.models import Base
+from bot.config_data.settings import settings
+from bot.db.models import Base
 
 # add model imports to models/__init__.py file
 

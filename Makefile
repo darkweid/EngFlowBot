@@ -1,5 +1,5 @@
 # Docker settings
-APP_ENV_FILE ?=
+APP_ENV_FILE ?= .env
 DEV_ENV_FILE ?= .env
 APP_ENV_FILE_ABS = $(abspath $(APP_ENV_FILE))
 DEV_ENV_FILE_ABS = $(abspath $(DEV_ENV_FILE))
@@ -104,17 +104,7 @@ test:
 .PHONY: test-cov
 test-cov:
 	TESTING=true pytest \
-		--cov=main \
-		--cov=config_data \
-		--cov=db \
-		--cov=handlers \
-		--cov=keyboards \
-		--cov=lexicon \
-		--cov=loggers \
-		--cov=middlewares \
-		--cov=services \
-		--cov=states \
-		--cov=utils \
+		--cov=bot \
 		--cov-report=term-missing \
 		--cov-report=xml
 
