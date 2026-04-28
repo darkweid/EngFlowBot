@@ -97,6 +97,35 @@ migrate: require-env-file
 lint:
 	pre-commit run --all-files
 
+.PHONY: test
+test:
+	TESTING=true pytest
+
+.PHONY: test-cov
+test-cov:
+	TESTING=true pytest \
+		--cov=main \
+		--cov=config_data \
+		--cov=db \
+		--cov=handlers \
+		--cov=keyboards \
+		--cov=lexicon \
+		--cov=loggers \
+		--cov=middlewares \
+		--cov=services \
+		--cov=states \
+		--cov=utils \
+		--cov-report=term-missing \
+		--cov-report=xml
+
+.PHONY: test-unit
+test-unit:
+	TESTING=true pytest tests/unit -v
+
+.PHONY: test-integration
+test-integration:
+	TESTING=true pytest tests/integration -v
+
 .PHONY: req-compile
 req-compile:
 	docker run --rm --platform=$(REQ_COMPILE_PLATFORM) \
