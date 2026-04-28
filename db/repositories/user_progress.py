@@ -1,23 +1,22 @@
 from __future__ import annotations
 
-import typing as t
 from datetime import date
-from typing import Any, Callable, Coroutine
+import typing as t
 
 from sqlalchemy import (
+    delete,
+    desc,
+    func,
     select,
     update,
-    delete,
-    func,
-    desc,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.init import get_session_maker
 from db.models import (
-    UserProgress,
-    User,
     TestingExercise,
+    User,
+    UserProgress,
 )
 
 
@@ -44,13 +43,13 @@ class UserProgressRepository:
     # ───────────────────────────── WRITE ────────────────────────── #
 
     async def update_progress_attempt(
-            self,
-            user_id: int,
-            exercise_type: str,
-            section: str,
-            subsection: str,
-            exercise_id: int,
-            success: bool,
+        self,
+        user_id: int,
+        exercise_type: str,
+        section: str,
+        subsection: str,
+        exercise_id: int,
+        success: bool,
     ) -> int:
         async with self._session_maker() as session, session.begin():
             stmt = (
@@ -77,11 +76,15 @@ class UserProgressRepository:
 
     async def update_user_points(self, user_id: int, delta: int) -> None:
         async with self._session_maker() as session, session.begin():
-            stmt = update(User).where(User.user_id == user_id).values(points=User.points + delta)
+            stmt = (
+                update(User)
+                .where(User.user_id == user_id)
+                .values(points=User.points + delta)
+            )
             await session.execute(stmt)
 
     async def delete_progress_by_subsection(
-            self, user_id: int, section: str, subsection: str
+        self, user_id: int, section: str, subsection: str
     ) -> None:
         async with self._session_maker() as session, session.begin():
             stmt = delete(UserProgress).where(
@@ -95,40 +98,51 @@ class UserProgressRepository:
 
     # --- counts for Testing section ---
     async def count_success_testing(
-            self, user_id: int, section: str, subsection: str, first_try_only: bool = False
+        self, user_id: int, section: str, subsection: str, first_try_only: bool = False
     ) -> int:
-        stmt = select(func.count()).select_from(UserProgress).where(
-            UserProgress.user_id == user_id,
-            UserProgress.exercise_type == "Testing",
-            UserProgress.exercise_section == section,
-            UserProgress.exercise_subsection == subsection,
-            UserProgress.success.is_(True),
+        stmt = (
+            select(func.count())
+            .select_from(UserProgress)
+            .where(
+                UserProgress.user_id == user_id,
+                UserProgress.exercise_type == "Testing",
+                UserProgress.exercise_section == section,
+                UserProgress.exercise_subsection == subsection,
+                UserProgress.success.is_(True),
+            )
         )
         if first_try_only:
             stmt = stmt.where(UserProgress.attempts == 1)
         return await self._scalar(stmt) or 0
 
-    async def count_testing_exercises_total(
-            self, section: str, subsection: str
-    ) -> int:
-        stmt = select(func.count()).select_from(TestingExercise).where(
-            TestingExercise.section == section, TestingExercise.subsection == subsection
+    async def count_testing_exercises_total(self, section: str, subsection: str) -> int:
+        stmt = (
+            select(func.count())
+            .select_from(TestingExercise)
+            .where(
+                TestingExercise.section == section,
+                TestingExercise.subsection == subsection,
+            )
         )
         return await self._scalar(stmt) or 0
 
     # --- generic activity ---
     async def count_by_type_in_interval(
-            self,
-            user_id: int,
-            exercise_type: str,
-            start: date,
-            end: date,
+        self,
+        user_id: int,
+        exercise_type: str,
+        start: date,
+        end: date,
     ) -> int:
-        stmt = select(func.count()).select_from(UserProgress).where(
-            UserProgress.exercise_type == exercise_type,
-            UserProgress.date >= start,
-            UserProgress.date <= end,
-            UserProgress.user_id == user_id,
+        stmt = (
+            select(func.count())
+            .select_from(UserProgress)
+            .where(
+                UserProgress.exercise_type == exercise_type,
+                UserProgress.date >= start,
+                UserProgress.date <= end,
+                UserProgress.user_id == user_id,
+            )
         )
         return await self._scalar(stmt) or 0
 

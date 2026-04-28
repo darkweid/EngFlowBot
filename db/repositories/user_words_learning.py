@@ -1,23 +1,25 @@
 from __future__ import annotations
 
-import typing as t
 from datetime import date
+import typing as t
 
-from sqlalchemy import select, update, func, distinct
+from sqlalchemy import distinct, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from db.init import get_session_maker
 from db.models import (
-    UserWordsLearning,
     NewWords,
     User,
+    UserWordsLearning,
 )
 
 
 class UserWordsLearningRepository:
 
-    def __init__(self, session_maker: t.Callable[[], AsyncSession] | None = None) -> None:
+    def __init__(
+        self, session_maker: t.Callable[[], AsyncSession] | None = None
+    ) -> None:
         self._session_maker = session_maker or get_session_maker()
 
     # ─────────────────────────────── READ ──────────────────────────────── #
@@ -36,7 +38,7 @@ class UserWordsLearningRepository:
             return list(result.scalars().all())
 
     async def all_words_by_section_subsection(
-            self, user_id: int, section: str, subsection: str
+        self, user_id: int, section: str, subsection: str
     ) -> list[UserWordsLearning]:
         async with self._session_maker() as session:
             stmt = (
@@ -61,9 +63,7 @@ class UserWordsLearningRepository:
             result = await session.execute(stmt)
             return list(result.scalars().all())
 
-    async def count_active_learning(
-            self, user_id: int, active_rate: int
-    ) -> int:
+    async def count_active_learning(self, user_id: int, active_rate: int) -> int:
         async with self._session_maker() as session:
             stmt = select(func.count(UserWordsLearning.exercise_id)).where(
                 UserWordsLearning.user_id == user_id,
@@ -73,18 +73,19 @@ class UserWordsLearningRepository:
 
             return result.scalar() or 0
 
-    async def count_active_in_subsection(self, user_id: int, subsection: str, learning_rate: int) -> int:
+    async def count_active_in_subsection(
+        self, user_id: int, subsection: str, learning_rate: int
+    ) -> int:
         async with self._session_maker() as session:
             stmt = select(func.count(UserWordsLearning.exercise_id)).where(
                 UserWordsLearning.subsection == subsection,
                 UserWordsLearning.user_id == user_id,
-                UserWordsLearning.success <= learning_rate)
+                UserWordsLearning.success <= learning_rate,
+            )
             result = await session.execute(stmt)
             return result.scalar()
 
-    async def count_learned(
-            self, user_id: int, learned_rate: int
-    ) -> int:
+    async def count_learned(self, user_id: int, learned_rate: int) -> int:
         async with self._session_maker() as session:
             stmt = select(func.count(UserWordsLearning.exercise_id)).where(
                 UserWordsLearning.user_id == user_id,
@@ -112,12 +113,14 @@ class UserWordsLearningRepository:
 
     async def distinct_subsections(self, user_id: int) -> list[str]:
         async with self._session_maker() as session:
-            stmt = select(distinct(UserWordsLearning.subsection)).filter(UserWordsLearning.user_id == user_id)
+            stmt = select(distinct(UserWordsLearning.subsection)).filter(
+                UserWordsLearning.user_id == user_id
+            )
             result = await session.execute(stmt)
             return list(result.scalars().all())
 
     async def count_learned_in_subsection(
-            self, user_id: int, subsection: str, learned_rate: int
+        self, user_id: int, subsection: str, learned_rate: int
     ) -> int:
         async with self._session_maker() as session:
             stmt = select(func.count(UserWordsLearning.exercise_id)).where(
@@ -128,9 +131,7 @@ class UserWordsLearningRepository:
             result = await session.execute(stmt)
             return result.scalar() or 0
 
-    async def count_today_in_subsection(
-            self, user_id: int, subsection: str
-    ) -> int:
+    async def count_today_in_subsection(self, user_id: int, subsection: str) -> int:
         async with self._session_maker() as session:
             stmt = select(func.count(UserWordsLearning.exercise_id)).where(
                 UserWordsLearning.subsection == subsection,
@@ -140,9 +141,7 @@ class UserWordsLearningRepository:
             result = await session.execute(stmt)
             return result.scalar() or 0
 
-    async def count_total_in_subsection(
-            self, user_id: int, subsection: str
-    ) -> int:
+    async def count_total_in_subsection(self, user_id: int, subsection: str) -> int:
         async with self._session_maker() as session:
             stmt = select(func.count(UserWordsLearning.exercise_id)).where(
                 UserWordsLearning.subsection == subsection,
@@ -151,9 +150,7 @@ class UserWordsLearningRepository:
             result = await session.execute(stmt)
             return result.scalar() or 0
 
-    async def sum_success_in_subsection(
-            self, user_id: int, subsection: str
-    ) -> int:
+    async def sum_success_in_subsection(self, user_id: int, subsection: str) -> int:
         async with self._session_maker() as session:
             stmt = select(func.sum(UserWordsLearning.success)).where(
                 UserWordsLearning.subsection == subsection,
@@ -162,9 +159,7 @@ class UserWordsLearningRepository:
             result = await session.execute(stmt)
             return result.scalar() or 0
 
-    async def sum_attempts_in_subsection(
-            self, user_id: int, subsection: str
-    ) -> int:
+    async def sum_attempts_in_subsection(self, user_id: int, subsection: str) -> int:
         async with self._session_maker() as session:
             stmt = select(func.sum(UserWordsLearning.attempts)).where(
                 UserWordsLearning.subsection == subsection,
@@ -174,17 +169,14 @@ class UserWordsLearningRepository:
             return result.scalar() or 0
 
     async def learning_info(
-            self, user_id: int, section: str, subsection: str, exercise_id: int
+        self, user_id: int, section: str, subsection: str, exercise_id: int
     ) -> UserWordsLearning | None:
         async with self._session_maker() as session:
-            stmt = (
-                select(UserWordsLearning)
-                .where(
-                    UserWordsLearning.user_id == user_id,
-                    UserWordsLearning.section == section,
-                    UserWordsLearning.subsection == subsection,
-                    UserWordsLearning.exercise_id == exercise_id,
-                )
+            stmt = select(UserWordsLearning).where(
+                UserWordsLearning.user_id == user_id,
+                UserWordsLearning.section == section,
+                UserWordsLearning.subsection == subsection,
+                UserWordsLearning.exercise_id == exercise_id,
             )
             result = await session.execute(stmt)
             return result.scalars().first()
@@ -200,12 +192,12 @@ class UserWordsLearningRepository:
             )
 
     async def update_learning_progress(
-            self,
-            section: str,
-            subsection: str,
-            exercise_id: int,
-            success_value: int,
-            next_review_date: date,
+        self,
+        section: str,
+        subsection: str,
+        exercise_id: int,
+        success_value: int,
+        next_review_date: date,
     ) -> None:
         async with self._session_maker() as session, session.begin():
             await session.execute(
@@ -233,7 +225,7 @@ class UserWordsLearningRepository:
             return result.scalars().all()
 
     async def add_user_words_learning_entries(
-            self, entries: list[UserWordsLearning]
+        self, entries: list[UserWordsLearning]
     ) -> None:
         async with self._session_maker() as session, session.begin():
             session.add_all(entries)
@@ -250,8 +242,6 @@ class UserWordsLearningRepository:
         async with self._session_maker() as session, session.begin():
             session.add(word)
 
-    async def add_user_words_learning_entry(
-            self, entry: UserWordsLearning
-    ) -> None:
+    async def add_user_words_learning_entry(self, entry: UserWordsLearning) -> None:
         async with self._session_maker() as session, session.begin():
             session.add(entry)

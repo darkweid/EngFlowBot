@@ -11,15 +11,15 @@ from aiogram.fsm.storage.redis import RedisStorage
 from config_data.settings import settings
 from db.init import init_async_session
 from handlers import (
-    user_commands_router,
     admin_router,
-    user_navigation_router,
-    user_stats_router,
-    user_reminder_router,
-    user_testing_router,
-    user_irr_verbs_router,
-    user_new_words_router,
     fallback_router,
+    user_commands_router,
+    user_irr_verbs_router,
+    user_navigation_router,
+    user_new_words_router,
+    user_reminder_router,
+    user_stats_router,
+    user_testing_router,
 )
 from keyboards.set_menu import set_main_menu
 from lexicon.lexicon_ru import ServiceMessages
@@ -27,9 +27,11 @@ from loggers import get_logger
 from middlewares.errors import ErrorHandlingMiddleware
 from middlewares.services import ServicesMiddleware
 from utils import (
-    send_message_to_admin,
+    get_bot_instance,
+    init_bot_instance,
+    schedule_reminders,
     scheduler,
-    schedule_reminders, get_bot_instance, init_bot_instance,
+    send_message_to_admin,
 )
 
 logger = get_logger(__name__)

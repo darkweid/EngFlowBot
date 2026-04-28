@@ -2,6 +2,7 @@ from aiogram import Bot
 
 from config_data.settings import settings
 from loggers import get_logger
+
 from .bot_init import get_bot_instance
 
 logger = get_logger(__name__)
@@ -27,7 +28,7 @@ async def send_message_to_admin(text: str, to_super_admin=False):
             for admin in admins:
                 await bot.send_message(admin, text=text)
         except Exception as e:
-            logger.error(f'Unsuccessful attempt to send message to admin{admin}: {e}')
+            logger.error(f"Unsuccessful attempt to send message to admin{admin}: {e}")
 
 
 async def send_message_to_developer(text: str):
@@ -43,4 +44,4 @@ async def send_message_to_developer(text: str):
     try:
         await bot.send_message(settings.developer_tg_id, text=text)
     except Exception as e:
-        logger.error(f'Unsuccessful attempt to send message to developer: {e}')
+        logger.error(f"Unsuccessful attempt to send message to developer: {e}")

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import random
 from datetime import date, timedelta
+import random
 
 from db.models import NewWords, UserWordsLearning
 from db.repositories.user_words_learning import UserWordsLearningRepository
@@ -12,9 +12,7 @@ class UserWordsLearningService:
     ACTIVE_LEARNING_RATE = 3
     LEARNED_RATE = 5
 
-    def __init__(
-            self, repository: UserWordsLearningRepository | None = None
-    ) -> None:
+    def __init__(self, repository: UserWordsLearningRepository | None = None) -> None:
         self._user_words_learning_repo = repository or UserWordsLearningRepository()
 
     # ──────────────────────────── PUBLIC API ───────────────────────────── #
@@ -26,8 +24,10 @@ class UserWordsLearningService:
 
         exercise = random.choice(words_today)
 
-        same_sub_words = await self._user_words_learning_repo.all_words_by_section_subsection(
-            user_id, exercise.new_word.section, exercise.new_word.subsection
+        same_sub_words = (
+            await self._user_words_learning_repo.all_words_by_section_subsection(
+                user_id, exercise.new_word.section, exercise.new_word.subsection
+            )
         )
         options = [
             w.new_word.russian.capitalize()
@@ -61,14 +61,14 @@ class UserWordsLearningService:
         )
 
     async def get_count_learned_exercises(self, user_id: int) -> int:
-        return await self._user_words_learning_repo.count_learned(user_id, self.LEARNED_RATE)
+        return await self._user_words_learning_repo.count_learned(
+            user_id, self.LEARNED_RATE
+        )
 
     async def get_count_all_exercises_by_user(self, user_id: int) -> int:
         return await self._user_words_learning_repo.count_all_by_user(user_id)
 
-    async def get_count_all_exercises_for_today_by_user(
-            self, user_id: int
-    ) -> int:
+    async def get_count_all_exercises_for_today_by_user(self, user_id: int) -> int:
         return await self._user_words_learning_repo.count_all_today_by_user(user_id)
 
     async def get_added_subsections_by_user(self, user_id: int):
@@ -85,20 +85,26 @@ class UserWordsLearningService:
             active = await self._user_words_learning_repo.count_active_in_subsection(
                 user_id, subsection, self.ACTIVE_LEARNING_RATE
             )
-            today = await self._user_words_learning_repo.count_today_in_subsection(user_id, subsection)
-            total = await self._user_words_learning_repo.count_total_in_subsection(user_id, subsection)
-
-            total_success = await self._user_words_learning_repo.sum_success_in_subsection(
+            today = await self._user_words_learning_repo.count_today_in_subsection(
                 user_id, subsection
             )
-            total_attempts = await self._user_words_learning_repo.sum_attempts_in_subsection(
+            total = await self._user_words_learning_repo.count_total_in_subsection(
                 user_id, subsection
+            )
+
+            total_success = (
+                await self._user_words_learning_repo.sum_success_in_subsection(
+                    user_id, subsection
+                )
+            )
+            total_attempts = (
+                await self._user_words_learning_repo.sum_attempts_in_subsection(
+                    user_id, subsection
+                )
             )
 
             success_rate = (
-                (total_success / total_attempts) * 100
-                if total_attempts
-                else 0
+                (total_success / total_attempts) * 100 if total_attempts else 0
             )
 
             stats[subsection] = {
@@ -112,12 +118,12 @@ class UserWordsLearningService:
         return stats
 
     async def set_progress(
-            self,
-            user_id: int,
-            section: str,
-            subsection: str,
-            exercise_id: int,
-            success: bool,
+        self,
+        user_id: int,
+        section: str,
+        subsection: str,
+        exercise_id: int,
+        success: bool,
     ) -> None:
         info = await self._user_words_learning_repo.learning_info(
             user_id, section, subsection, exercise_id
@@ -147,9 +153,11 @@ class UserWordsLearningService:
         )
 
     async def add_words_to_learning(
-            self, section: str, subsection: str, user_id: int
+        self, section: str, subsection: str, user_id: int
     ) -> None:
-        new_words = await self._user_words_learning_repo.list_new_words(section, subsection)
+        new_words = await self._user_words_learning_repo.list_new_words(
+            section, subsection
+        )
         entries = [
             UserWordsLearning(
                 user_id=user_id,
@@ -160,10 +168,12 @@ class UserWordsLearningService:
             for word in new_words
         ]
         if entries:
-            await self._user_words_learning_repo.add_user_words_learning_entries(entries)
+            await self._user_words_learning_repo.add_user_words_learning_entries(
+                entries
+            )
 
     async def admin_add_words_to_learning(
-            self, russian: str, english: str, user_id: int
+        self, russian: str, english: str, user_id: int
     ) -> None:
         # individual section/subsection — user ID
         section = subsection = str(user_id)

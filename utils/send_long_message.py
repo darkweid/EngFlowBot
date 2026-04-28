@@ -11,15 +11,15 @@ Parameters:
 """
 
 
-async def send_long_message(callback, text, delimiter='\n', max_length=4000, **kwargs):
+async def send_long_message(callback, text, delimiter="\n", max_length=4000, **kwargs):
     paragraphs = text.split(delimiter)
-    current_message = ''
+    current_message = ""
 
     for paragraph in paragraphs:
         if len(current_message) + len(paragraph) < max_length:
-            current_message += paragraph + '\n'
+            current_message += paragraph + "\n"
         else:
             await callback.message.answer(current_message, **kwargs)
-            current_message = paragraph + '\n'
+            current_message = paragraph + "\n"
     if current_message:
         await callback.message.answer(current_message, **kwargs)

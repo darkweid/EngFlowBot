@@ -6,8 +6,8 @@ from typing import Any
 from aiogram import BaseMiddleware
 from aiogram.exceptions import (
     TelegramAPIError,
-    TelegramForbiddenError,  # user blocked the bot
     TelegramBadRequest,  # chat not found, message can't be edited etc.
+    TelegramForbiddenError,  # user blocked the bot
     TelegramRetryAfter,  # rate-limit
 )
 from aiogram.types import CallbackQuery, Message
@@ -26,10 +26,10 @@ class ErrorHandlingMiddleware(BaseMiddleware):
     """
 
     async def __call__(
-            self,
-            handler: Any,
-            event: Any,
-            data: dict[str, Any],
+        self,
+        handler: Any,
+        event: Any,
+        data: dict[str, Any],
     ):
         try:
             return await handler(event, data)

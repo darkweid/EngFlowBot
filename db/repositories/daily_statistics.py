@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import typing as t
 from datetime import date
+import typing as t
 
-from sqlalchemy import select, update, func
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.init import get_session_maker
@@ -12,7 +12,9 @@ from db.models import DailyStatistics
 
 class DailyStatisticsRepository:
 
-    def __init__(self, session_maker: t.Callable[[], AsyncSession] | None = None) -> None:
+    def __init__(
+        self, session_maker: t.Callable[[], AsyncSession] | None = None
+    ) -> None:
         self._session_maker = session_maker or get_session_maker()
 
     # ───────────────────────── helpers ───────────────────────── #
@@ -40,7 +42,7 @@ class DailyStatisticsRepository:
         return stats
 
     async def increment_field(
-            self, day: date, field_name: str, amount: int = 1
+        self, day: date, field_name: str, amount: int = 1
     ) -> None:
         async with self._session_maker() as session, session.begin():
             await session.execute(
@@ -51,9 +53,7 @@ class DailyStatisticsRepository:
 
     # ──────────────────────── aggregation ────────────────────── #
 
-    async def aggregate(
-            self, start_date: date, end_date: date
-    ) -> dict[str, int]:
+    async def aggregate(self, start_date: date, end_date: date) -> dict[str, int]:
         stmt = (
             select(
                 func.sum(DailyStatistics.total_testing_exercises).label(

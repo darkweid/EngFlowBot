@@ -11,7 +11,7 @@ def calculate_next_interval(success_attempts, success_rate):
     base_interval = 1
     growth_factor = 1.7
 
-    standard_interval = base_interval * (growth_factor ** success_attempts)
+    standard_interval = base_interval * (growth_factor**success_attempts)
 
     # coefficient of adaptation
     if success_rate >= 0.75:  # high success, increase interval

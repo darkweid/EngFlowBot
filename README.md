@@ -4,24 +4,24 @@
 
 | |                                                        |
 |---|--------------------------------------------------------|
-| **Stack** | Python 3.11 · Aiogram 3.13 · PostgreSQL 15 · Redis 5   |
+| **Stack** | Python 3.13 · Aiogram 3 · PostgreSQL 15 · Redis 7       |
 | **License** | MIT                                                    |
 | **Status** | ![CI](https://img.shields.io/badge/build-passing-brightgreen) |
 
 ---
 
 ### Learner highlights
-* **📚 Spaced repetition** — adaptive intervals, optional *Hard mode*  
-* **🗣 Pronunciation links** — one-tap jump to Youglish examples  
-* **📝 Micro grammar tests** — instant feedback & per-topic progress  
-* **⏰ Personal reminders** — cron-like notifications in local time  
+* **📚 Spaced repetition** — adaptive intervals, optional *Hard mode*
+* **🗣 Pronunciation links** — one-tap jump to Youglish examples
+* **📝 Micro grammar tests** — instant feedback & per-topic progress
+* **⏰ Personal reminders** — cron-like notifications in local time
 * **📊 Stats dashboard** — today / active / learned / accuracy %
 
 ### Teacher / admin toolkit
-* CRUD word sets & grammar tests directly in chat  
-* Per-student dashboards & deletion  
-* Global usage metrics (daily new words / tests / users)  
-* Broadcast scheduler  
+* CRUD word sets & grammar tests directly in chat
+* Per-student dashboards & deletion
+* Global usage metrics (daily new words / tests / users)
+* Broadcast scheduler
 * Instant alerts (bot start/stop, sign-ups, word additions, test results)
 
 ---
@@ -71,7 +71,7 @@
 
 ### Running the Project
 
-The project uses Docker Compose to orchestrate all services, including the Bot app, PostgreSQL, Redis. Use the provided Makefile to simplify the workflow.
+The project uses Docker Compose to orchestrate all services, including the Bot app, PostgreSQL, Redis. Docker and Compose files live in `infra/`; use the provided Makefile to simplify the workflow.
 
 #### Building & Starting the Containers
 
@@ -80,12 +80,35 @@ By following these instructions and using the provided Makefile, you can easily 
 To build the Docker images (if needed) and run all containers in detached mode, use:
 
 ```bash
-make run
+APP_ENV_FILE=.env make run
 ```
 
 This command will:
 - Build the images as necessary.
-- Start all services defined in the `docker-compose.yml` file.
+- Start all services defined in `infra/docker-compose.yml`.
+
+For local development with the dev image and source bind mount:
+
+```bash
+make run-dev
+```
+
+By default `run-dev` uses the local `.env` file. To use another file, pass `DEV_ENV_FILE=path/to/.env`.
+
+#### Dependencies
+
+Requirements are split into base, production, and development inputs under `infra/requirements/`.
+Compiled lock files are generated inside Docker:
+
+```bash
+make req-compile
+```
+
+Install the local development lock file:
+
+```bash
+python -m pip install -r infra/requirements/dev.txt
+```
 
 #### Viewing Logs
 
@@ -107,19 +130,19 @@ make logs-app
 - To stop all running containers:
 
   ```bash
-  make down
+  APP_ENV_FILE=.env make down
   ```
 
 - To remove containers, networks, volumes, and local images (and clean up orphaned containers):
 
   ```bash
-  make clean
+  APP_ENV_FILE=.env make clean
   ```
 
 - To restart containers:
 
   ```bash
-  make restart
+  APP_ENV_FILE=.env make restart
   ```
 ---
 
@@ -180,7 +203,7 @@ Below are the steps you need to follow in order to ship every push to main strai
 #### On the VPS
 ```bash
 sudo adduser engbot --disabled-password
-sudo usermod -aG docker engbot               
+sudo usermod -aG docker engbot
 sudo mkdir -p /srv/engflowbot
 sudo chown engbot:engbot /srv/engflowbot
 ```

@@ -1,1 +1,1 @@
-from .states import AdminFSM, UserFSM, WordsLearningFSM, TestingFSM, IrrVerbsLearningFSM
+from .states import AdminFSM, IrrVerbsLearningFSM, TestingFSM, UserFSM, WordsLearningFSM

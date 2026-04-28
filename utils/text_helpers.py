@@ -1,45 +1,45 @@
 def get_word_declension(count: int, word: str) -> str:
     """
-     Returns the correct form of a word based on a numeral.
+    Returns the correct form of a word based on a numeral.
 
-     The function takes a number and a word, and returns a string with the
-     number and the corresponding form of the word according to the rules of
-     Russian declension.
+    The function takes a number and a word, and returns a string with the
+    number and the corresponding form of the word according to the rules of
+    Russian declension.
 
-     Parameters:
-     ----------
-     count : int
-         The number for which the word needs to be declined. It should be non-negative.
-     word : str
-         The word for which the declension needs to be determined. Supported words
-         are registered in the function's dictionary (e.g., "слово", "предложение").
+    Parameters:
+    ----------
+    count : int
+        The number for which the word needs to be declined. It should be non-negative.
+    word : str
+        The word for which the declension needs to be determined. Supported words
+        are registered in the function's dictionary (e.g., "слово", "предложение").
 
-     Returns:
-     ----------
-     str
-         A string formatted as "{count} {declined word}", where {declined word}
-         is in the correct form depending on the value of count.
+    Returns:
+    ----------
+    str
+        A string formatted as "{count} {declined word}", where {declined word}
+        is in the correct form depending on the value of count.
 
-     Exceptions:
-     -----------
-     ValueError
-         If the word is not supported (not found in the declension dictionary).
+    Exceptions:
+    -----------
+    ValueError
+        If the word is not supported (not found in the declension dictionary).
 
-     Examples:
-     ---------
-     >>> get_word_declension(1, "слово")
-     '1 слово'
+    Examples:
+    ---------
+    >>> get_word_declension(1, "слово")
+    '1 слово'
 
-     >>> get_word_declension(5, "слово")
-     '5 слов'
+    >>> get_word_declension(5, "слово")
+    '5 слов'
 
-     >>> get_word_declension(11, "предложение")
-     '11 предложений'
-     """
+    >>> get_word_declension(11, "предложение")
+    '11 предложений'
+    """
     declensions = {
         "слово": ("слово", "слова", "слов"),
         "предложение": ("предложение", "предложения", "предложений"),
-        "упражнение":("упражнение", "упражнения", "упражнений"),
+        "упражнение": ("упражнение", "упражнения", "упражнений"),
     }
     word = word.lower()
 

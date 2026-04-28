@@ -1,5 +1,7 @@
-from aiogram.fsm.context import FSMContext
 from enum import Enum
+
+from aiogram.fsm.context import FSMContext
+
 
 async def update_state_data(state: FSMContext, **kwargs):
     """

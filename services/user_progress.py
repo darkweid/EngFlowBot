@@ -14,13 +14,13 @@ class UserProgressService:
     # ───────────────────────── mark / update ───────────────────────── #
 
     async def mark_exercise_completed(
-            self,
-            user_id: int,
-            exercise_type: str,
-            subsection: str,
-            section: str,
-            exercise_id: int,
-            success: bool,
+        self,
+        user_id: int,
+        exercise_type: str,
+        subsection: str,
+        section: str,
+        exercise_id: int,
+        success: bool,
     ) -> bool:
         """
         Returns True if this was the user's first attempt to solve
@@ -54,14 +54,14 @@ class UserProgressService:
         return first_try
 
     async def delete_progress_by_subsection(
-            self, user_id: int, section: str, subsection: str
+        self, user_id: int, section: str, subsection: str
     ) -> None:
         await self._repo.delete_progress_by_subsection(user_id, section, subsection)
 
     # ───────────────────────── statistics & info ──────────────────────── #
 
     async def get_counts_completed_exercises_testing(
-            self, user_id: int, section: str, subsection: str
+        self, user_id: int, section: str, subsection: str
     ) -> tuple[int, int, int]:
         first_try_success = await self._repo.count_success_testing(
             user_id, section, subsection, first_try_only=True
@@ -109,7 +109,7 @@ class UserProgressService:
         return await self._repo.get_user_points(user_id)
 
     async def get_user_rank_and_total(
-            self, user_id: int, medals_rank: bool = False
+        self, user_id: int, medals_rank: bool = False
     ) -> tuple[str | int, int]:
         points = await self._repo.get_user_points(user_id)
         higher = await self._repo.count_users_with_points_greater(points)
@@ -127,7 +127,7 @@ class UserProgressService:
         return rank, total
 
     async def get_all_users_ranks_and_points(
-            self, medals_rank: bool = False
+        self, medals_rank: bool = False
     ) -> list[dict[str, str]]:
         users = await self._repo.list_users_ordered_by_points()
         users_with_ranks: list[dict[str, str]] = []

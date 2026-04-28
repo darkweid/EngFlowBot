@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import typing as t
 
-from sqlalchemy import select, func, update, delete, distinct
+from sqlalchemy import delete, distinct, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.init import get_session_maker
@@ -11,7 +11,9 @@ from db.models import TestingExercise, UserProgress
 
 class TestingRepository:
 
-    def __init__(self, session_maker: t.Callable[[], AsyncSession] | None = None) -> None:
+    def __init__(
+        self, session_maker: t.Callable[[], AsyncSession] | None = None
+    ) -> None:
         self._session_maker = session_maker or get_session_maker()
 
     # ─────────────────────────────── READ ──────────────────────────────── #
@@ -19,8 +21,9 @@ class TestingRepository:
     async def get_max_exercise_id(self, section: str, subsection: str) -> int:
         async with self._session_maker() as session:
             result = await session.execute(
-                select(func.max(TestingExercise.id))
-                .filter_by(section=section, subsection=subsection)
+                select(func.max(TestingExercise.id)).filter_by(
+                    section=section, subsection=subsection
+                )
             )
             return result.scalar() or 0
 
@@ -46,17 +49,14 @@ class TestingRepository:
             return result.scalar() or 0
 
     async def get_available_exercises(
-            self, section: str, subsection: str, user_id: int
+        self, section: str, subsection: str, user_id: int
     ) -> list[TestingExercise]:
         async with self._session_maker() as session:
-            completed_ex_ids = (
-                select(UserProgress.exercise_id)
-                .where(
-                    UserProgress.user_id == user_id,
-                    UserProgress.exercise_section == section,
-                    UserProgress.exercise_subsection == subsection,
-                    UserProgress.success.is_(True),
-                )
+            completed_ex_ids = select(UserProgress.exercise_id).where(
+                UserProgress.user_id == user_id,
+                UserProgress.exercise_section == section,
+                UserProgress.exercise_subsection == subsection,
+                UserProgress.success.is_(True),
             )
 
             result = await session.execute(
@@ -71,7 +71,9 @@ class TestingRepository:
     async def get_section_names(self) -> list[str]:
         async with self._session_maker() as session:
             result = await session.execute(
-                select(distinct(TestingExercise.section)).order_by(TestingExercise.section)
+                select(distinct(TestingExercise.section)).order_by(
+                    TestingExercise.section
+                )
             )
             return list(result.scalars().all())
 
@@ -91,12 +93,12 @@ class TestingRepository:
             session.add(exercise)
 
     async def update_exercise(
-            self,
-            section: str,
-            subsection: str,
-            index: int,
-            test: str,
-            answer: str,
+        self,
+        section: str,
+        subsection: str,
+        index: int,
+        test: str,
+        answer: str,
     ) -> None:
         async with self._session_maker() as session, session.begin():
             await session.execute(

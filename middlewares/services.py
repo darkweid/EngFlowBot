@@ -30,10 +30,16 @@ class ServicesMiddleware(BaseMiddleware):
 
         data.update(
             testing_service=TestingService(repository=TestingRepository(sm)),
-            user_progress_service=UserProgressService(repository=UserProgressRepository(sm)),
+            user_progress_service=UserProgressService(
+                repository=UserProgressRepository(sm)
+            ),
             user_service=UserService(repository=UserRepository(sm)),
             new_words_service=NewWordsService(repository=NewWordsRepository(sm)),
-            user_words_learning_service=UserWordsLearningService(repository=UserWordsLearningRepository(sm)),
-            daily_statistics_service=DailyStatisticsService(repository=DailyStatisticsRepository(sm)),
+            user_words_learning_service=UserWordsLearningService(
+                repository=UserWordsLearningRepository(sm)
+            ),
+            daily_statistics_service=DailyStatisticsService(
+                repository=DailyStatisticsRepository(sm)
+            ),
         )
         return await handler(event, data)

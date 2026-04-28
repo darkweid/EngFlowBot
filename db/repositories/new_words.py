@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import typing as t
 
-from sqlalchemy import select, func, update, delete, distinct
+from sqlalchemy import delete, distinct, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.init import get_session_maker
@@ -11,7 +11,9 @@ from db.models import NewWords
 
 class NewWordsRepository:
 
-    def __init__(self, session_maker: t.Callable[[], AsyncSession] | None = None) -> None:
+    def __init__(
+        self, session_maker: t.Callable[[], AsyncSession] | None = None
+    ) -> None:
         self._session_maker = session_maker or get_session_maker()
 
     # ─────────────────────────────── READ ──────────────────────────────── #
@@ -19,17 +21,16 @@ class NewWordsRepository:
     async def get_max_exercise_id(self, section: str, subsection: str) -> int:
         async with self._session_maker() as session:
             result = await session.execute(
-                select(func.max(NewWords.id))
-                .filter_by(section=section, subsection=subsection)
+                select(func.max(NewWords.id)).filter_by(
+                    section=section, subsection=subsection
+                )
             )
             return result.scalar() or 0
 
     async def list_exercises(self, subsection: str) -> list[NewWords]:
         async with self._session_maker() as session:
             result = await session.execute(
-                select(NewWords)
-                .filter_by(subsection=subsection)
-                .order_by(NewWords.id)
+                select(NewWords).filter_by(subsection=subsection).order_by(NewWords.id)
             )
             return list(result.scalars().all())
 
@@ -61,12 +62,12 @@ class NewWordsRepository:
             session.add(exercise)
 
     async def update_exercise(
-            self,
-            section: str,
-            subsection: str,
-            index: int,
-            russian: str,
-            english: str,
+        self,
+        section: str,
+        subsection: str,
+        index: int,
+        russian: str,
+        english: str,
     ) -> None:
         async with self._session_maker() as session, session.begin():
             await session.execute(

@@ -13,9 +13,7 @@ class DailyStatisticsService:
         "new_user": "new_users",
     }
 
-    def __init__(
-            self, repository: DailyStatisticsRepository | None = None
-    ) -> None:
+    def __init__(self, repository: DailyStatisticsRepository | None = None) -> None:
         self._repo = repository or DailyStatisticsRepository()
 
     # ─────────────────────────── PUBLIC API ─────────────────────────── #

@@ -6,6 +6,7 @@ from lexicon import BasicButtons, MessageTexts
 from loggers import get_logger
 from services.user import UserService
 from services.user_words_learning import UserWordsLearningService
+
 from .bot_init import get_bot_instance
 
 logger = get_logger(__name__)
@@ -21,14 +22,14 @@ async def send_message_to_all_users(text: str):
     bot: Bot = await get_bot_instance()
     user_service: UserService = UserService()
     if bot is None:
-        raise Exception('Bot instance is not available')
+        raise Exception("Bot instance is not available")
     users = await user_service.get_all_users()
     for user in users:
-        user_id = user.get('user_id')
+        user_id = user.get("user_id")
         try:
             await bot.send_message(user_id, text=text)
         except TelegramForbiddenError as e:
-            logger.error(f'Failed to send broadcast message to user {user_id}:\n{e}')
+            logger.error(f"Failed to send broadcast message to user {user_id}:\n{e}")
 
 
 async def send_message_to_user(user_id: int, text: str, learning_button: bool = False):
@@ -45,11 +46,15 @@ async def send_message_to_user(user_id: int, text: str, learning_button: bool = 
         if not learning_button:
             await bot.send_message(user_id, text=text)
         else:
-            await bot.send_message(user_id, text=text,
-                                   reply_markup=await keyboard_builder(1,
-                                                                       learn_new_words=BasicButtons.LEARN_ADDED_WORDS))
+            await bot.send_message(
+                user_id,
+                text=text,
+                reply_markup=await keyboard_builder(
+                    1, learn_new_words=BasicButtons.LEARN_ADDED_WORDS
+                ),
+            )
     except TelegramForbiddenError as e:
-        logger.error(f'Failed to send message to user {user_id}:\n{e}')
+        logger.error(f"Failed to send message to user {user_id}:\n{e}")
 
 
 async def send_reminder_to_user(user_id: int):
@@ -61,15 +66,22 @@ async def send_reminder_to_user(user_id: int):
     """
     bot: Bot = await get_bot_instance()
     user_words_learning_service: UserWordsLearningService = UserWordsLearningService()
-    count_words_for_today = await user_words_learning_service.get_count_all_exercises_for_today_by_user(user_id=user_id)
+    count_words_for_today = (
+        await user_words_learning_service.get_count_all_exercises_for_today_by_user(
+            user_id=user_id
+        )
+    )
     # active_learning_count = await user_words_learning_service.get_count_active_learning_exercises(user_id=user_id)
     try:
         if count_words_for_today > 0:
             word_form = get_word_declension(count_words_for_today)
-            await bot.send_message(user_id, text=MessageTexts.REMINDER_WORDS_TO_LEARN.format(word_form),
-                                   reply_markup=await keyboard_builder(1,
-                                                                       learn_new_words=BasicButtons.LEARN_ADDED_WORDS)
-                                   )
+            await bot.send_message(
+                user_id,
+                text=MessageTexts.REMINDER_WORDS_TO_LEARN.format(word_form),
+                reply_markup=await keyboard_builder(
+                    1, learn_new_words=BasicButtons.LEARN_ADDED_WORDS
+                ),
+            )
         # elif count_words_for_today == 0 and active_learning_count < 12:
         #     await bot.send_message(user_id,
         #                            text=f'{MessageTexts.REMINDER}\n{MessageTexts.ADVICE_TO_ADD_MORE_WORDS}',
@@ -81,7 +93,7 @@ async def send_reminder_to_user(user_id: int):
         #     await bot.send_message(user_id, text=MessageTexts.REMINDER,
         #                            reply_markup=await keyboard_builder(1, BasicButtons.MAIN_MENU))
     except TelegramForbiddenError as e:
-        logger.error(f'Failed to send message to user {user_id}:\n{e}')
+        logger.error(f"Failed to send message to user {user_id}:\n{e}")
 
 
 def get_word_declension(count: int) -> str:

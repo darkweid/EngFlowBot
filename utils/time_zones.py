@@ -23,5 +23,5 @@ time_zones = {
     "tz_UTC|+9": "UTC+09",
     "tz_UTC|+10": "UTC+10",
     "tz_UTC|+11": "UTC+11",
-    "tz_UTC|+12": "UTC+12"
+    "tz_UTC|+12": "UTC+12",
 }

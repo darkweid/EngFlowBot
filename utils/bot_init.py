@@ -14,7 +14,9 @@ async def init_bot_instance(token: str) -> None:
     """
     global bot_instance
     if bot_instance is None:
-        bot_instance = Bot(token=token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+        bot_instance = Bot(
+            token=token, default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+        )
 
 
 async def get_bot_instance() -> Bot:
