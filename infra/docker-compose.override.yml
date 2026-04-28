@@ -1,0 +1,12 @@
+# Local development override.
+
+services:
+  bot:
+    build:
+      context: ..
+      dockerfile: infra/docker/Dockerfile.dev
+    image: engflowbot:dev
+    volumes:
+      - ..:/app
+      - /app/.venv
+      - bot-logs:/app/logs

@@ -1,0 +1,93 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+
+env:
+  APP_DIR: /srv/engflowbot
+  REPO_URL: git@github.com:darkweid/EngFlowBot.git
+  REMOTE_ENV_FILE: /tmp/engflowbot.env.${{ github.run_id }}.${{ github.run_attempt }}
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_commit.id }}
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > ~/.ssh/id_deploy_eng_bot
+          chmod 600 ~/.ssh/id_deploy_eng_bot
+          ssh-keyscan -H "${{ secrets.SERVER_IP }}" >> ~/.ssh/known_hosts
+
+      - name: Create temporary env file
+        env:
+          ENV_FILE: ${{ secrets.ENV_FILE }}
+        run: |
+          if [ -z "$ENV_FILE" ]; then
+            echo "ENV_FILE GitHub secret is empty or missing."
+            exit 1
+          fi
+          umask 077
+          printf '%s\n' "$ENV_FILE" > env.production
+
+      - name: Upload temporary env file
+        run: |
+          scp -i ~/.ssh/id_deploy_eng_bot -o StrictHostKeyChecking=no \
+            env.production \
+            ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }}:"$REMOTE_ENV_FILE"
+
+      - name: SSH deploy
+        run: |
+          ssh -i ~/.ssh/id_deploy_eng_bot -o StrictHostKeyChecking=no \
+            ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} \
+            "APP_DIR='$APP_DIR' REPO_URL='$REPO_URL' REMOTE_ENV_FILE='$REMOTE_ENV_FILE' bash -s" <<'EOF'
+          set -euo pipefail
+
+          cleanup() {
+            rm -f "$REMOTE_ENV_FILE"
+          }
+          trap cleanup EXIT
+
+          if [ ! -s "$REMOTE_ENV_FILE" ]; then
+            echo "Remote env file is empty or missing: $REMOTE_ENV_FILE"
+            exit 1
+          fi
+
+          chmod 600 "$REMOTE_ENV_FILE"
+          mkdir -p "$APP_DIR"
+
+          if [ ! -d "$APP_DIR/.git" ]; then
+            git clone "$REPO_URL" "$APP_DIR"
+          fi
+
+          cd "$APP_DIR"
+          git pull origin main
+          APP_ENV_FILE="$REMOTE_ENV_FILE" make deploy-prod
+          make clean-resources
+          EOF
+
+      - name: Delete local temporary env file
+        if: always()
+        run: rm -f env.production
+
+      - name: Delete remote temporary env file
+        if: always()
+        run: |
+          if [ -f ~/.ssh/id_deploy_eng_bot ]; then
+            ssh -i ~/.ssh/id_deploy_eng_bot -o StrictHostKeyChecking=no \
+              ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} \
+              "rm -f '$REMOTE_ENV_FILE'" || true
+          fi

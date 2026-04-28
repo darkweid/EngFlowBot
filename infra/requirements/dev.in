@@ -1,0 +1,6 @@
+-r base.in
+
+# Development tools
+black
+pip-tools
+pre-commit

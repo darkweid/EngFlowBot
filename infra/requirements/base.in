@@ -1,0 +1,7 @@
+aiogram
+alembic
+APScheduler
+asyncpg
+pydantic-settings
+redis
+SQLAlchemy
