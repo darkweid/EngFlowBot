@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime, time as tm
+from datetime import time as tm
 
+from bot.datetime_utils import get_utc_now
 from bot.db.models import User
 from bot.db.repositories.user import UserRepository
 from bot.loggers import get_logger
@@ -30,7 +31,7 @@ class UserService:
             return
 
         user = User(
-            registration_date=datetime.utcnow(),
+            registration_date=get_utc_now(),
             user_id=user_id,
             full_name=full_name,
             tg_login=tg_login,
