@@ -4,6 +4,8 @@ __pycache__/
 *.pyd
 .Python
 .env
+env.production
 .venv
+.venv-ci
 *.log
 .git
