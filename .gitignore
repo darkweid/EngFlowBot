@@ -28,3 +28,6 @@ cover/
 
 *.mo
 *.pot
+
+*.md
+*.log
