@@ -8,7 +8,7 @@ on:
 
 env:
   APP_DIR: /srv/engflowbot
-  REPO_URL: git@github.com:darkweid/EngFlowBot.git
+  REPO_URL: https://github.com/darkweid/EngFlowBot.git
   REMOTE_ENV_FILE: /tmp/engflowbot.env.${{ github.run_id }}.${{ github.run_attempt }}
 
 jobs:
