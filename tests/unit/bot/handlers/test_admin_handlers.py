@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
@@ -8,6 +8,7 @@ from bot.handlers import admin_handlers
 from bot.handlers.admin_handlers import (
     adding_broadcast_date_time,
     adding_broadcast_text,
+    admin_activity,
     admin_adding_sentence_testing,
     admin_adding_words,
     admin_adding_words_to_user,
@@ -314,3 +315,27 @@ async def test_sure_delete_broadcast_calls_scheduler_cleanup():
         await sure_delete_broadcast(callback)
 
     delete_func.assert_awaited_once()
+
+
+async def test_admin_activity_uses_injected_daily_statistics_service():
+    callback = FakeCallback(data=AdminMenuButtons.SEE_ACTIVITY_DAY)
+    stats = {
+        "testing_exercises": 1,
+        "new_words": 2,
+        "irregular_verbs": 3,
+        "new_users": 4,
+    }
+    daily_statistics_service = SimpleNamespace(get=AsyncMock(return_value=stats))
+
+    with _kb_patch():
+        await admin_activity(
+            callback,
+            daily_statistics_service=daily_statistics_service,
+        )
+
+    today = date.today()
+    daily_statistics_service.get.assert_awaited_once_with(
+        start_date=today,
+        end_date=today,
+    )
+    callback.message.answer.assert_awaited_once()

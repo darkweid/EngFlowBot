@@ -1002,20 +1002,20 @@ async def admin_deleting_words(
 @admin_router.callback_query(F.data == AdminMenuButtons.SEE_ACTIVITY_MONTH)
 async def admin_activity(
     callback: CallbackQuery,
-    daily_progress_service: DailyStatisticsService,
+    daily_statistics_service: DailyStatisticsService,
 ):
     cbdata = callback.data
     today = date.today()
     if cbdata == AdminMenuButtons.SEE_ACTIVITY_DAY:
-        stats = await daily_progress_service.get(start_date=today, end_date=today)
+        stats = await daily_statistics_service.get(start_date=today, end_date=today)
         period = "сегодня"
     elif cbdata == AdminMenuButtons.SEE_ACTIVITY_WEEK:
-        stats = await daily_progress_service.get(
+        stats = await daily_statistics_service.get(
             start_date=today - timedelta(days=7), end_date=today
         )
         period = "неделю"
     elif cbdata == AdminMenuButtons.SEE_ACTIVITY_MONTH:
-        stats = await daily_progress_service.get(
+        stats = await daily_statistics_service.get(
             start_date=today - timedelta(days=30), end_date=today
         )
         period = "месяц"
