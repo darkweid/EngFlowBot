@@ -54,3 +54,18 @@ async def test_see_stats_user_uses_month_interval_for_month_button():
     user_progress_service.get_activity_by_user.assert_awaited_once_with(
         123, interval=30
     )
+
+
+async def test_see_stats_user_uses_week_interval_for_week_button():
+    callback = FakeCallback(data="stats_last_week", user_id=123)
+    user_progress_service = SimpleNamespace(
+        get_activity_by_user=AsyncMock(return_value="week stats")
+    )
+
+    with patch(
+        "bot.handlers.user_stats_handlers.keyboard_builder",
+        new=AsyncMock(return_value=object()),
+    ):
+        await see_stats_user(callback, user_progress_service)
+
+    user_progress_service.get_activity_by_user.assert_awaited_once_with(123, interval=7)

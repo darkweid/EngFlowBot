@@ -150,6 +150,16 @@ async def test_get_random_word_exercise_falls_back_to_all_user_words():
     repo.all_words_by_user.assert_awaited_once_with(123)
 
 
+async def test_get_added_subsections_by_user_delegates_to_repo():
+    repo = make_repo(distinct_subsections=AsyncMock(return_value=["Travel", "Food"]))
+    service = UserWordsLearningService(repository=repo)
+
+    result = await service.get_added_subsections_by_user(123)
+
+    assert result == ["Travel", "Food"]
+    repo.distinct_subsections.assert_awaited_once_with(123)
+
+
 async def test_count_methods_delegate_with_learning_rates():
     repo = make_repo(
         count_active_learning=AsyncMock(return_value=3),

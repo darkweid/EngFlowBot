@@ -187,6 +187,64 @@ async def test_get_user_rank_and_total_returns_medal_for_top_three():
     assert result == ("🥇", 10)
 
 
+async def test_get_user_rank_and_total_returns_silver_medal():
+    repo = make_repo(
+        get_user_points=AsyncMock(return_value=40),
+        count_users_with_points_greater=AsyncMock(return_value=1),
+        total_users=AsyncMock(return_value=10),
+    )
+    service = UserProgressService(repository=repo)
+
+    result = await service.get_user_rank_and_total(123, medals_rank=True)
+
+    assert result == ("🥈", 10)
+
+
+async def test_get_user_rank_and_total_returns_bronze_medal():
+    repo = make_repo(
+        get_user_points=AsyncMock(return_value=30),
+        count_users_with_points_greater=AsyncMock(return_value=2),
+        total_users=AsyncMock(return_value=10),
+    )
+    service = UserProgressService(repository=repo)
+
+    result = await service.get_user_rank_and_total(123, medals_rank=True)
+
+    assert result == ("🥉", 10)
+
+
+async def test_get_activity_by_user_formats_today(monkeypatch):
+    monkeypatch.setattr("bot.services.user_progress.datetime", FixedDatetime)
+    repo = make_repo(count_by_type_in_interval=AsyncMock(side_effect=[5, 0, 1]))
+    service = UserProgressService(repository=repo)
+
+    result = await service.get_activity_by_user(123, interval=0)
+
+    assert "сегодня" in result
+    assert "Тестирование: 5" in result
+
+
+async def test_get_activity_by_user_formats_last_month(monkeypatch):
+    monkeypatch.setattr("bot.services.user_progress.datetime", FixedDatetime)
+    repo = make_repo(count_by_type_in_interval=AsyncMock(side_effect=[10, 20, 30]))
+    service = UserProgressService(repository=repo)
+
+    result = await service.get_activity_by_user(123, interval=30)
+
+    assert "последний месяц" in result
+    assert "Изучение новых слов: 20" in result
+
+
+async def test_get_user_points_delegates_to_repository():
+    repo = make_repo(get_user_points=AsyncMock(return_value=42))
+    service = UserProgressService(repository=repo)
+
+    result = await service.get_user_points(123)
+
+    assert result == 42
+    repo.get_user_points.assert_awaited_once_with(123)
+
+
 async def test_get_all_users_ranks_and_points_maps_users():
     users = [
         build_user(user_id=1, full_name="One", tg_login="one", points=30),

@@ -74,3 +74,93 @@ async def test_delete_exercise_filters_by_composite_exercise_key():
     assert "testing_exercises.section = 'grammar'" in sql
     assert "testing_exercises.subsection = 'present simple'" in sql
     assert "testing_exercises.id = 7" in sql
+
+
+async def test_get_max_exercise_id_returns_zero_when_no_rows():
+    session = FakeAsyncSession([FakeExecuteResult(scalar_value=None)])
+    repo = _TestingRepository(session_maker=FakeSessionMaker(session))
+
+    result = await repo.get_max_exercise_id("Grammar", "Present Simple")
+
+    assert result == 0
+    sql = statement_sql(session.executed_statements[0]).lower()
+    assert "max(testing_exercises.id)" in sql
+    assert "testing_exercises.section = 'grammar'" in sql
+    assert "testing_exercises.subsection = 'present simple'" in sql
+
+
+async def test_get_max_exercise_id_returns_existing_max():
+    session = FakeAsyncSession([FakeExecuteResult(scalar_value=11)])
+    repo = _TestingRepository(session_maker=FakeSessionMaker(session))
+
+    result = await repo.get_max_exercise_id("Grammar", "Present Simple")
+
+    assert result == 11
+
+
+async def test_list_exercises_filters_by_subsection_and_orders_by_id():
+    exercises = [
+        build_testing_exercise(exercise_id=1),
+        build_testing_exercise(exercise_id=2),
+    ]
+    session = FakeAsyncSession([FakeExecuteResult(scalar_values=exercises)])
+    repo = _TestingRepository(session_maker=FakeSessionMaker(session))
+
+    result = await repo.list_exercises("Present Simple")
+
+    assert result == exercises
+    sql = statement_sql(session.executed_statements[0]).lower()
+    assert "from testing_exercises" in sql
+    assert "testing_exercises.subsection = 'present simple'" in sql
+    assert "order by testing_exercises.id" in sql
+
+
+async def test_count_exercises_filters_by_section_and_subsection():
+    session = FakeAsyncSession([FakeExecuteResult(scalar_value=4)])
+    repo = _TestingRepository(session_maker=FakeSessionMaker(session))
+
+    result = await repo.count_exercises("Grammar", "Present Simple")
+
+    assert result == 4
+    sql = statement_sql(session.executed_statements[0]).lower()
+    assert "from testing_exercises" in sql
+    assert "testing_exercises.section = 'grammar'" in sql
+    assert "testing_exercises.subsection = 'present simple'" in sql
+
+
+async def test_count_exercises_returns_zero_when_no_rows():
+    session = FakeAsyncSession([FakeExecuteResult(scalar_value=None)])
+    repo = _TestingRepository(session_maker=FakeSessionMaker(session))
+
+    result = await repo.count_exercises("Grammar", "Present Simple")
+
+    assert result == 0
+
+
+async def test_get_section_names_returns_distinct_ordered_sections():
+    session = FakeAsyncSession(
+        [FakeExecuteResult(scalar_values=["Grammar", "Vocabulary"])]
+    )
+    repo = _TestingRepository(session_maker=FakeSessionMaker(session))
+
+    result = await repo.get_section_names()
+
+    assert result == ["Grammar", "Vocabulary"]
+    sql = statement_sql(session.executed_statements[0]).lower()
+    assert "select distinct" in sql
+    assert "order by testing_exercises.section" in sql
+
+
+async def test_get_subsection_names_returns_distinct_ordered_subsections():
+    session = FakeAsyncSession(
+        [FakeExecuteResult(scalar_values=["Past Simple", "Present Simple"])]
+    )
+    repo = _TestingRepository(session_maker=FakeSessionMaker(session))
+
+    result = await repo.get_subsection_names("Grammar")
+
+    assert result == ["Past Simple", "Present Simple"]
+    sql = statement_sql(session.executed_statements[0]).lower()
+    assert "select distinct" in sql
+    assert "testing_exercises.section = 'grammar'" in sql
+    assert "order by testing_exercises.subsection" in sql

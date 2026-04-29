@@ -58,3 +58,49 @@ async def test_send_message_to_developer_uses_configured_developer_id():
         await message_to_admin.send_message_to_developer("debug")
 
     bot.send_message.assert_awaited_once_with(99, text="debug")
+
+
+async def test_send_message_to_admin_logs_error_when_send_fails():
+    bot = SimpleNamespace(send_message=AsyncMock(side_effect=RuntimeError("boom")))
+
+    with (
+        patch(
+            "bot.utils.message_to_admin.get_bot_instance",
+            new=AsyncMock(return_value=bot),
+        ),
+        patch(
+            "bot.utils.message_to_admin.settings",
+            SimpleNamespace(admin_ids=[1, 2], developer_tg_id=99),
+        ),
+        patch.object(message_to_admin.logger, "error") as error_log,
+    ):
+        await message_to_admin.send_message_to_admin("hi")
+
+    bot.send_message.assert_awaited_once_with(1, text="hi")
+    error_log.assert_called_once()
+    msg = error_log.call_args.args[0]
+    assert "admin" in msg
+    assert "boom" in msg
+
+
+async def test_send_message_to_developer_logs_error_when_send_fails():
+    bot = SimpleNamespace(send_message=AsyncMock(side_effect=RuntimeError("boom")))
+
+    with (
+        patch(
+            "bot.utils.message_to_admin.get_bot_instance",
+            new=AsyncMock(return_value=bot),
+        ),
+        patch(
+            "bot.utils.message_to_admin.settings",
+            SimpleNamespace(admin_ids=[1], developer_tg_id=99),
+        ),
+        patch.object(message_to_admin.logger, "error") as error_log,
+    ):
+        await message_to_admin.send_message_to_developer("debug")
+
+    bot.send_message.assert_awaited_once_with(99, text="debug")
+    error_log.assert_called_once()
+    msg = error_log.call_args.args[0]
+    assert "developer" in msg
+    assert "boom" in msg

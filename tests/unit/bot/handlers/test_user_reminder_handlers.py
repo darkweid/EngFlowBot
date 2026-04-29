@@ -3,6 +3,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 from bot.handlers.user_reminder_handlers import (
+    choose_timezone,
     reminder_command,
     set_reminder,
     set_reminder_time,
@@ -119,3 +120,53 @@ async def test_set_reminder_time_rejects_invalid_time_without_service_call():
     schedule.assert_not_awaited()
     message.delete.assert_awaited_once_with()
     message.answer.assert_awaited_once_with('"bad" не соответствует формату HH:MM')
+
+
+async def test_reminder_command_shows_timezone_only_when_reminder_disabled():
+    message = FakeMessage(user_id=123)
+    user_service = SimpleNamespace(
+        get_user=AsyncMock(return_value={"time_zone": "+3", "reminder_time": None})
+    )
+
+    with patch(
+        "bot.handlers.user_reminder_handlers.keyboard_builder",
+        new=AsyncMock(return_value=object()),
+    ):
+        await reminder_command(message, user_service)
+
+    text = message.answer.await_args.args[0]
+    assert "UTC+3" in text
+    assert "Напоминания выключены" in text
+
+
+async def test_reminder_command_prompts_for_setup_when_nothing_set():
+    message = FakeMessage(user_id=123)
+    user_service = SimpleNamespace(
+        get_user=AsyncMock(return_value={"time_zone": None, "reminder_time": None})
+    )
+
+    with patch(
+        "bot.handlers.user_reminder_handlers.keyboard_builder",
+        new=AsyncMock(return_value=object()),
+    ):
+        await reminder_command(message, user_service)
+
+    text = message.answer.await_args.args[0]
+    assert "Часовой пояс не установлен" in text
+
+
+async def test_choose_timezone_offers_timezone_keyboard():
+    callback = FakeCallback()
+
+    with patch(
+        "bot.handlers.user_reminder_handlers.keyboard_builder",
+        new=AsyncMock(return_value="kb"),
+    ):
+        await choose_timezone(callback)
+
+    callback.answer.assert_awaited_once()
+    callback.message.answer.assert_awaited_once()
+    args = callback.message.answer.await_args
+    from bot.lexicon import MessageTexts
+
+    assert args.args[0] == MessageTexts.CHOOSE_TIMEZONE

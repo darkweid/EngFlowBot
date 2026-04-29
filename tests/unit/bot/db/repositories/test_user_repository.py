@@ -70,3 +70,41 @@ async def test_set_reminder_time_filters_by_user_id():
     sql = statement_sql(session.executed_statements[0]).lower()
     assert "update users" in sql
     assert "users.user_id = 123" in sql
+
+
+async def test_delete_by_user_id_removes_user_inside_transaction():
+    session = FakeAsyncSession([FakeExecuteResult()])
+    repo = UserRepository(session_maker=FakeSessionMaker(session))
+
+    await repo.delete_by_user_id(123)
+
+    session.begin.assert_called_once_with()
+    session.execute.assert_awaited_once()
+    sql = statement_sql(session.executed_statements[0]).lower()
+    assert "delete from users" in sql
+    assert "users.user_id = 123" in sql
+
+
+async def test_set_timezone_updates_user_timezone():
+    session = FakeAsyncSession([FakeExecuteResult()])
+    repo = UserRepository(session_maker=FakeSessionMaker(session))
+
+    await repo.set_timezone(123, "UTC+3")
+
+    session.begin.assert_called_once_with()
+    sql = statement_sql(session.executed_statements[0]).lower()
+    assert "update users" in sql
+    assert "users.user_id = 123" in sql
+    assert "time_zone='utc+3'" in sql.replace(" ", "")
+
+
+async def test_set_timezone_accepts_none_to_clear_timezone():
+    session = FakeAsyncSession([FakeExecuteResult()])
+    repo = UserRepository(session_maker=FakeSessionMaker(session))
+
+    await repo.set_timezone(123, None)
+
+    session.begin.assert_called_once_with()
+    sql = statement_sql(session.executed_statements[0]).lower()
+    assert "update users" in sql
+    assert "users.user_id = 123" in sql

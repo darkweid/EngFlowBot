@@ -65,3 +65,62 @@ async def test_add_exercise_adds_orm_object_inside_transaction():
 
     session.begin.assert_called_once_with()
     session.add.assert_called_once_with(word)
+
+
+async def test_get_max_exercise_id_returns_zero_when_no_rows():
+    session = FakeAsyncSession([FakeExecuteResult(scalar_value=None)])
+    repo = NewWordsRepository(session_maker=FakeSessionMaker(session))
+
+    result = await repo.get_max_exercise_id("Vocabulary", "Travel")
+
+    assert result == 0
+    sql = statement_sql(session.executed_statements[0]).lower()
+    assert "max(new_words.id)" in sql
+    assert "new_words.section = 'vocabulary'" in sql
+    assert "new_words.subsection = 'travel'" in sql
+
+
+async def test_get_max_exercise_id_returns_existing_max():
+    session = FakeAsyncSession([FakeExecuteResult(scalar_value=42)])
+    repo = NewWordsRepository(session_maker=FakeSessionMaker(session))
+
+    result = await repo.get_max_exercise_id("Vocabulary", "Travel")
+
+    assert result == 42
+
+
+async def test_count_exercises_filters_by_section_and_subsection():
+    session = FakeAsyncSession([FakeExecuteResult(scalar_value=5)])
+    repo = NewWordsRepository(session_maker=FakeSessionMaker(session))
+
+    result = await repo.count_exercises("Vocabulary", "Travel")
+
+    assert result == 5
+    sql = statement_sql(session.executed_statements[0]).lower()
+    assert "from new_words" in sql
+    assert "new_words.section = 'vocabulary'" in sql
+    assert "new_words.subsection = 'travel'" in sql
+
+
+async def test_count_exercises_returns_zero_when_no_rows():
+    session = FakeAsyncSession([FakeExecuteResult(scalar_value=None)])
+    repo = NewWordsRepository(session_maker=FakeSessionMaker(session))
+
+    result = await repo.count_exercises("Vocabulary", "Travel")
+
+    assert result == 0
+
+
+async def test_delete_exercise_filters_by_composite_word_key():
+    session = FakeAsyncSession([FakeExecuteResult()])
+    repo = NewWordsRepository(session_maker=FakeSessionMaker(session))
+
+    await repo.delete_exercise("Vocabulary", "Travel", 7)
+
+    session.begin.assert_called_once_with()
+    session.execute.assert_awaited_once()
+    sql = statement_sql(session.executed_statements[0]).lower()
+    assert "delete from new_words" in sql
+    assert "new_words.section = 'vocabulary'" in sql
+    assert "new_words.subsection = 'travel'" in sql
+    assert "new_words.id = 7" in sql
