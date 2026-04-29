@@ -63,7 +63,10 @@ async def startup() -> tuple[Bot, Dispatcher]:
     await bot.delete_webhook(drop_pending_updates=True)
 
     scheduler.start()
-    await schedule_reminders()
+    try:
+        await schedule_reminders()
+    except Exception:
+        logger.exception("Failed to schedule reminders during startup")
     await send_message_to_admin(ServiceMessages.BOT_ON)
 
     logger.info("Bot started")
