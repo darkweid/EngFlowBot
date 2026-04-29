@@ -1,7 +1,9 @@
 .env
+env.production
 english_bot.db
 jobs.sqlite
 .venv/
+.venv-ci/
 venv/
 
 .idea/
@@ -9,5 +11,23 @@ venv/
 
 **/__pycache__/
 
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
 *.mo
 *.pot
+
+*.md
+*.log

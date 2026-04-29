@@ -1,0 +1,33 @@
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "F",  # pyflakes
+    "I",  # isort (import sorting)
+]
+extend-ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = [
+    "bot",
+]
+combine-as-imports = true
+force-sort-within-sections = true
+
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = ["F401"]
+"bot/handlers/admin_handlers.py" = ["F811"]
+"bot/handlers/user_new_words_handlers.py" = ["F811", "F841"]
+"bot/handlers/user_testing_handlers.py" = ["F811"]
+"bot/keyboards/keyboards.py" = ["F403", "F405"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+pythonpath = ["."]
+testpaths = ["tests"]
+markers = [
+    "integration: tests that require external services or cross-component wiring",
+]

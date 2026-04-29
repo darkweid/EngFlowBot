@@ -1,0 +1,16 @@
+from .lexicon_ru import (
+    AdminMenuButtons,
+    BasicButtons,
+    ConditionalsSections,
+    ConstructionsSections,
+    MainMenuButtons,
+    MessageTexts,
+    ModalVerbsSections,
+    NewWordsSections,
+    PhrasesAndWordsSections,
+    PrepositionsSections,
+    TensesSections,
+    TestingSections,
+    list_right_answers,
+    testing_section_mapping,
+)

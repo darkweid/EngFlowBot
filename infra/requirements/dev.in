@@ -1,0 +1,9 @@
+-r base.in
+
+# Development tools
+black
+pip-tools
+pre-commit
+pytest
+pytest-asyncio
+pytest-cov

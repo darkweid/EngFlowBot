@@ -1,32 +1,74 @@
+# EngFlowBot
 
-## About EngFlowBot
-**EngFlowBot** is an open-source Telegram bot that helps Russian-speaking learners master English through spaced-repetition vocabulary drills and micro-grammar tests.
+![CI](https://github.com/darkweid/EngFlowBot/actions/workflows/ci.yml/badge.svg?branch=main)
+[![Coverage Status](https://coveralls.io/repos/github/darkweid/EngFlowBot/badge.svg?branch=main)](https://coveralls.io/github/darkweid/EngFlowBot?branch=main)
+![Python](https://img.shields.io/badge/python-3.13-blue)
+![Aiogram](https://img.shields.io/badge/aiogram-3-blue)
+![License](https://img.shields.io/github/license/darkweid/EngFlowBot)
 
-| |                                                        |
-|---|--------------------------------------------------------|
-| **Stack** | Python 3.11 · Aiogram 3.13 · PostgreSQL 15 · Redis 5   |
-| **License** | MIT                                                    |
-| **Status** | ![CI](https://img.shields.io/badge/build-passing-brightgreen) |
+EngFlowBot is a Telegram bot for Russian-speaking English learners. It combines
+vocabulary practice, micro grammar tests, personal reminders, user progress, and
+admin tools for managing learning content directly from Telegram.
 
----
+## Key Features
 
-### Learner highlights
-* **📚 Spaced repetition** — adaptive intervals, optional *Hard mode*  
-* **🗣 Pronunciation links** — one-tap jump to Youglish examples  
-* **📝 Micro grammar tests** — instant feedback & per-topic progress  
-* **⏰ Personal reminders** — cron-like notifications in local time  
-* **📊 Stats dashboard** — today / active / learned / accuracy %
+For learners:
 
-### Teacher / admin toolkit
-* CRUD word sets & grammar tests directly in chat  
-* Per-student dashboards & deletion  
-* Global usage metrics (daily new words / tests / users)  
-* Broadcast scheduler  
-* Instant alerts (bot start/stop, sign-ups, word additions, test results)
+- **Vocabulary training** — spaced repetition with built-in rules, learning
+  guidance, and per-user progress tracking
+- **Topic word sets** — section and topic selection for adding new words to study
+- **Hard mode** — optional self-check before multiple-choice vocabulary practice
+- **Micro grammar tests** — section-based exercises with instant feedback,
+  answer reveal, progress reset, and retake flows
+- **Pronunciation links** — one-tap jump to Youglish examples
+- **Stats dashboard** — today, active, learned, accuracy, and per-topic
+  vocabulary metrics
+- **Personal reminders** — notifications at the user's selected time and time zone
 
----
+For admins:
 
-### Architecture at a glance
+- **Content management** — CRUD tools for word sections, vocabulary exercises,
+  and grammar tests
+- **User management** — user lookup, profile details, and account deletion tools
+- **Personal word assignments** — add, review, and remove individual words for a
+  selected user
+- **Activity statistics** — daily, weekly, and monthly user activity
+- **Broadcasts** — schedule admin messages and clear pending broadcasts
+- **Event alerts** — startup, shutdown, sign-up, word-set, and test-completion
+  notifications
+
+## Bot Flows
+
+Learner flow:
+
+- Register with `/start` and choose a reminder time zone when prompted.
+- Add topic word sets, practice due vocabulary, and optionally enable hard mode.
+- Choose grammar test sections and subsections, reveal answers when needed, and
+  retake completed tests after resetting progress.
+- Review personal stats with activity and vocabulary progress metrics.
+
+Admin flow:
+
+- Open `/admin` to manage vocabulary content, grammar tests, and word sections.
+- Look up users, review profile details, delete accounts, and manage personal
+  word assignments.
+- Schedule broadcasts, clear pending broadcasts, and monitor activity periods.
+- Receive operational and user-activity alerts in the configured admin chat.
+
+## Bot Commands
+
+| Command | Audience | Purpose |
+|---|---|---|
+| `/start` | Users | Register a new user or return an existing user to the main menu. |
+| `/main_menu` | Users | Open the main menu for registered users. |
+| `/stats` | Users | Show profile and activity stats for today, week, or month. |
+| `/reminder` | Users | View, change, or disable reminder settings. |
+| `/info` | Users | Show bot rules and owner contact information. |
+| `/admin` | Admins | Open the admin panel for content, users, activity, and broadcasts. |
+| `/reset_fsm` | Utility | Clear the current FSM state for the current chat. |
+
+## Architecture
+
 ```text
 ┌─────────────────────┐
 │ Telegram API        │
@@ -39,174 +81,264 @@
 └──────────┬──────────┘
            │
 ┌──────────▼──────────┐
-│  Services layer     │  business logic, pure async
+│  Services layer     │  business logic
 └──────────┬──────────┘
            │
 ┌──────────▼──────────┐
-│ Repositories layer  │  SQLAlchemy 2 (async)
+│ Repositories layer  │  SQLAlchemy 2
 └──────────┬──────────┘
            │
    PostgreSQL / Redis
 
 ```
----
 
-### Cloning the Repository
+Core boundaries:
 
-1. Open your terminal.
-2. Clone the repository:
+- Handlers coordinate Telegram interaction and delegate persistence through
+  injected services.
+- Services own business logic and keep persistence details out of handlers.
+- Repositories own SQLAlchemy query construction and return ORM models, scalars,
+  or lightweight DTO-style data.
+- Middlewares provide service dependency injection and centralized error
+  handling.
 
-   ```bash
-   git clone https://github.com/darkweid/EngFlowBot.git
-   cd EngFlowBot
-   ```
+Runtime code lives under `bot/`:
 
-3. Copy the example environment file to create your own:
+- `bot/main.py` creates the bot, dispatcher, middleware, routers, scheduler, and
+  startup/shutdown hooks.
+- `bot/handlers/` coordinates Telegram messages, callbacks, FSM state,
+  keyboards, and service calls.
+- `bot/services/` contains business logic.
+- `bot/db/models.py` and `bot/db/repositories/` contain SQLAlchemy models and
+  persistence access.
+- `bot/middlewares/services.py` injects services and repositories into handler
+  data.
+- `bot/middlewares/errors.py` centralizes Telegram, validation, database, and
+  unexpected error handling.
+- `bot/lexicon/` stores user-facing Russian text.
+- `bot/keyboards/` builds bot keyboards.
+- `bot/states/` defines FSM states.
+- `bot/utils/` contains shared scheduling, bot initialization, messaging, URL,
+  parsing, and formatting helpers.
+- `migrations/versions/` stores Alembic migrations.
+- `infra/` stores Docker, Compose, and pinned dependency files.
+
+## Stack
+
+- Python 3.13
+- Aiogram 3
+- PostgreSQL 15
+- Redis 7
+- SQLAlchemy async
+- Alembic
+- APScheduler
+- Pytest
+- Ruff, Black, pre-commit
+- Docker Compose
+
+## Quick Start
+
+Prerequisites:
+
+- Docker and Docker Compose.
+- Python 3.13 for local tooling and tests.
+- A Telegram bot token from BotFather.
+
+First run:
+
+1. Copy the example environment file:
 
    ```bash
    cp .env.example .env
    ```
 
-4. Open the `.env` file in your favorite editor and configure the required environment variables.
+2. Fill the Telegram token, admin IDs, database credentials, Redis DSN, and
+   owner metadata in `.env`.
 
-### Running the Project
+3. Start the development stack:
 
-The project uses Docker Compose to orchestrate all services, including the Bot app, PostgreSQL, Redis. Use the provided Makefile to simplify the workflow.
+   ```bash
+   make run-dev
+   ```
 
-#### Building & Starting the Containers
+4. Apply migrations inside the app container:
 
-By following these instructions and using the provided Makefile, you can easily deploy and manage the entire project stack with a few simple commands. Happy coding!
+   ```bash
+   APP_ENV_FILE=.env make migrate
+   ```
 
-To build the Docker images (if needed) and run all containers in detached mode, use:
+5. View logs:
 
-```bash
-make run
-```
+   ```bash
+   make logs
+   make logs-app
+   ```
 
-This command will:
-- Build the images as necessary.
-- Start all services defined in the `docker-compose.yml` file.
+The first local run starts containers before migrations are applied. Run
+`APP_ENV_FILE=.env make migrate` after the stack is up.
 
-#### Viewing Logs
-
-To view logs for all services:
-
-```bash
-make logs
-```
-
-To view logs for a specific service, such as the Bot app:
+Stop the stack:
 
 ```bash
-make logs-app
+APP_ENV_FILE=.env make down
 ```
 
+## Production-Style Run
 
-#### Stopping and Cleaning Up
+Build and start the production image with Compose:
 
-- To stop all running containers:
-
-  ```bash
-  make down
-  ```
-
-- To remove containers, networks, volumes, and local images (and clean up orphaned containers):
-
-  ```bash
-  make clean
-  ```
-
-- To restart containers:
-
-  ```bash
-  make restart
-  ```
----
-
-### Error handling
-
-#### 1. Validation layer (ValueError)
-	•	User message: “Wrong format.”
-	•	Logs: level INFO with the error text.
-	•	Side effects: none.
-
-#### 2. Database layer (SQLAlchemyError)
-	•	User message: “Database error. Please try again later.”
-	•	Logs: full traceback at level ERROR.
-	•	Alert: the traceback is forwarded to the developer chat via send_message_to_developer().
-
-#### 3. Telegram rate-limit (TelegramRetryAfter)
-	•	Action: bot sleeps for retry_after seconds, then re-runs the handler.
-	•	Logs: level WARNING noting the cooldown.
-
-#### 4. User blocked the bot (TelegramForbiddenError)
-	•	User message: none (they have blocked the bot).
-	•	Logs: level WARNING with the user ID.
-
-#### 5. Bad request / impossible action (TelegramBadRequest)
-	•	User message: “This action can’t be performed.”
-	•	Logs: level WARNING containing Telegram’s error text.
-
-#### 6. Other Telegram API errors (TelegramAPIError, generic)
-	•	User message: “Telegram error. Please try again later.”
-	•	Logs: level ERROR with the API error text.
-
-#### 7. Unknown exceptions (Exception fallback)
-	•	User message: “An unexpected error occurred. We’re already on it.”
-	•	Logs: full traceback at level ERROR.
-	•	Alert: traceback is sent to the developer chat.
-
-#### 8. Graceful shutdown (asyncio.CancelledError)
-	•	Action: middleware re-raises the exception so the event loop can shut down cleanly.
-	•	Logs: not treated as an error.
-
-
-
-Registration order
-```python
-
-dp.update.middleware.register(ServicesMiddleware())            # business DI
-dp.update.middleware.register(ErrorHandlingMiddleware())       # last
-```
-
----
-
-### CI / CD guide — GitHub Actions → SSH deploy
-
-Below are the steps you need to follow in order to ship every push to main straight to your VPS.
-
-#### 1 · Prepare the server
-
-#### On the VPS
 ```bash
-sudo adduser engbot --disabled-password
-sudo usermod -aG docker engbot               
-sudo mkdir -p /srv/engflowbot
-sudo chown engbot:engbot /srv/engflowbot
+APP_ENV_FILE=.env make run
 ```
-- Generate an SSH key pair on your workstation (or in GH Secrets UI) and put the public half in ~engbot/.ssh/authorized_keys.
+
+Apply migrations:
+
+```bash
+APP_ENV_FILE=.env make migrate
+```
+
+Restart containers:
+
+```bash
+APP_ENV_FILE=.env make restart
+```
+
+Remove containers, volumes, networks, local images, and orphans:
+
+```bash
+APP_ENV_FILE=.env make clean
+```
+
+## Testing
+
+Run the full test suite:
+
+```bash
+make test
+```
+
+Run tests with coverage and create `coverage.xml`:
+
+```bash
+make test-cov
+```
+
+Run focused suites:
+
+```bash
+make test-unit
+make test-integration
+```
+
+Run the CI syntax check locally:
+
+```bash
+python -m compileall bot tests
+```
+
+Tests live under `tests/`. Unit tests mirror application modules under
+`tests/unit/`; integration tests live under `tests/integration/`; shared helpers,
+factories, and fakes live under `tests/helpers/`, `tests/factories/`, and
+`tests/fakes/`.
 
 
+## Tooling
 
-#### 2 · Create repository secrets
+Run all pre-commit hooks:
 
-- SSH_PRIVATE_KEY	– Private part of the deploy key (multi-line, keep -----BEGIN …-----).
-- SERVER_IP – Public IP or DNS of the VPS.
-- SSH_USER – The Linux user that owns /srv/engflowbot (e.g. engbot).
+```bash
+make lint
+```
 
+Install local development dependencies:
 
-#### 3 · Push & watch
-	1.	git add . && git commit -m "feat: add super cool feature"
-	2.	git push origin main
-	3.	GitHub → Actions tab → Deploy job should turn green.
-The bot restarts on your VPS automatically.
+```bash
+python -m pip install -r infra/requirements/dev.txt
+```
 
-That’s it—full zero-downtime CI/CD with less than 50 lines of YAML.
+Regenerate pinned requirements from `infra/requirements/*.in`:
 
----
+```bash
+make req-compile
+```
 
-### Road-map
+Sync a local environment to the dev or prod lock file:
 
-	•	Native inline audio (replace Youglish)
-	•	Prometheus + Grafana dashboard
-	•	Mini-webapp (TWA) for content editing
+```bash
+make req-sync-dev
+make req-sync-prod
+```
+
+## Configuration
+
+The bot reads settings through Pydantic from environment variables. For local
+development, copy `.env.example` to `.env`.
+
+Important variables:
+
+| Variable | Purpose | Format / example |
+|---|---|---|
+| `BOT_TOKEN` | Telegram bot token. | `1234567890:replace-with-bot-token` |
+| `ADMIN_IDS` | Telegram admin IDs allowed to use `/admin`. | `[123456789]` |
+| `REDIS_DSN` | Redis DSN for aiogram FSM storage. | `redis://redis_fsm` |
+| `POSTGRES_USER` | PostgreSQL username. | `admin` |
+| `POSTGRES_PASSWORD` | PostgreSQL password. | `password` |
+| `POSTGRES_HOST` | PostgreSQL host visible to the app container. | `postgres` |
+| `POSTGRES_PORT` | PostgreSQL port. | `5432` |
+| `POSTGRES_DB` | PostgreSQL database name. | `postgres` |
+| `DB_ECHO` | SQLAlchemy SQL echo flag. | `False` |
+| `LOG_LEVEL` | Console log level. | `DEBUG` |
+| `LOG_LEVEL_FILE` | File log level. | `WARNING` |
+| `OWNER_NAME` | Owner display name shown in bot text. | `Ivan Ivanov` |
+| `OWNER_TG_LINK` | Owner Telegram link shown in bot text. | `https://t.me/example` |
+| `DEVELOPER_TG_ID` | Developer/admin Telegram ID for service messages. | `123456789` |
+
+Do not commit real `.env` files, tokens, credentials, admin IDs, or Telegram user
+data.
+
+## CI/CD
+
+GitHub Actions CI runs on pushes and pull requests to `main`.
+
+CI currently checks:
+
+- Python module compilation for `bot` and `tests`.
+- Alembic migration heads.
+- pre-commit hooks through `make lint`.
+- pytest with coverage through `make test-cov`.
+- Coveralls upload from `coverage.xml`.
+- Docker image build from `infra/docker/Dockerfile`.
+
+Server prerequisites for deploy:
+
+- A Linux deploy user with access to Docker.
+- A writable application directory, by default `/srv/engflowbot`.
+- An SSH key whose public half is authorized for the deploy user.
+- GitHub Secrets configured for SSH access and the production environment file.
+
+Deployment is handled by `.github/workflows/deploy.yml` after a successful CI run
+on `main`. The deploy job connects to the server over SSH, updates
+`/srv/engflowbot`, uploads the environment file from GitHub Secrets, and runs:
+
+```bash
+APP_ENV_FILE="$REMOTE_ENV_FILE" make deploy-prod
+```
+
+Required deploy secrets:
+
+- `SSH_PRIVATE_KEY`
+- `SERVER_IP`
+- `SSH_USER`
+- `ENV_FILE`
+
+## Useful Make Targets
+
+- `make run-dev` - start the development Compose stack with override.
+- `make run` - build and start the production-style Compose stack.
+- `make migrate` - apply Alembic migrations in the app container.
+- `make migration message="..."` - create an autogenerated Alembic revision.
+- `make logs` / `make logs-app` / `make logs-postgres` - stream logs.
+- `make test` / `make test-cov` - run tests.
+- `make lint` - run pre-commit.
+- `make req-compile` - regenerate pinned requirements.
+- `make clean` - remove Compose resources.
