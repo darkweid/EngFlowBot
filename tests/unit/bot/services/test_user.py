@@ -1,4 +1,4 @@
-from datetime import datetime, time, timezone
+from datetime import datetime, time
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
@@ -34,8 +34,7 @@ async def test_add_user_creates_new_user_when_missing():
     assert user.user_id == 123
     assert user.full_name == "Mark"
     assert user.tg_login == "mark_login"
-    assert user.registration_date.tzinfo is not None
-    assert user.registration_date.utcoffset() == timezone.utc.utcoffset(None)
+    assert user.registration_date.tzinfo is None
     assert user.reminder_time is None
     assert user.time_zone is None
     repo.update_basic_info.assert_not_awaited()

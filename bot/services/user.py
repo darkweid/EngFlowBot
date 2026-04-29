@@ -31,7 +31,7 @@ class UserService:
             return
 
         user = User(
-            registration_date=get_utc_now(),
+            registration_date=get_utc_now().replace(tzinfo=None),
             user_id=user_id,
             full_name=full_name,
             tg_login=tg_login,
