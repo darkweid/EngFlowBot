@@ -49,5 +49,15 @@ jobs:
       - name: Run pre-commit
         run: make lint
 
+      - name: Run tests with coverage
+        run: make test-cov
+
+      - name: Upload coverage to Coveralls
+        uses: coverallsapp/github-action@v2.3.6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          format: cobertura
+          file: coverage.xml
+
       - name: Build Docker image
         run: docker build -f infra/docker/Dockerfile -t engflowbot:ci .
